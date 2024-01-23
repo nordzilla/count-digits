@@ -1,0 +1,17 @@
+[package]
+name = "count-digits"
+version = "0.1.0"
+authors = ["Erik Nordin <nordzillacode@gmail.com>"]
+description = """
+CountDigits is a trait for retrieving the count of decimal digits in an integer.
+It is implemented for all of the primitive integer types as well as all of the
+non-zero integer types.
+"""
+homepage = "https://github.com/nordzilla/count-digits"
+repository = "https://github.com/nordzilla/count-digits"
+keywords = ["decimal", "digit", "count", "integer", "trait"]
+categories = [ "algorithms", "mathematics", "no-std" ]
+license = "MIT"
+edition = "2021"
+rust-version = "1.67.1"
+
