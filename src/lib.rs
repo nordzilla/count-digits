@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::zero_prefixed_literal)]
 //! # CountDigits
 //!
 //! A trait to count the decimal digits of an integer.
@@ -116,6 +117,10 @@ use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZ
 
 /// Count the decimal digits of an integer.
 pub trait CountDigits: Copy + Sized {
+    /// The type of integer that should be passed in to the
+    /// [count_digits_radix()](CountDigits::count_digits_radix) function.
+    type Radix;
+
     /// Returns the count of bits in an integer starting with the first non-zero bit.
     /// ```rust
     /// use count_digits::CountDigits;
@@ -542,17 +547,34 @@ pub trait CountDigits: Copy + Sized {
     /// }
     /// ```
     fn count_hex_digits(self) -> u32;
+
+    /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+    /// ### Examples
+    /// ```rust
+    /// use count_digits::CountDigits;
+    ///
+    /// for n in 0..1_000_000 {
+    ///   assert_eq!(n.count_digits_radix(02_u32), n.count_bits());
+    ///   assert_eq!(n.count_digits_radix(08_u32), n.count_octal_digits());
+    ///   assert_eq!(n.count_digits_radix(10_u32), n.count_digits());
+    ///   assert_eq!(n.count_digits_radix(16_u32), n.count_hex_digits());
+    /// }
+    /// ```
+    fn count_digits_radix(self, radix: Self::Radix) -> u32;
 }
 
 macro_rules! impl_count_digits {
     (
         primitive_type = $primitive_type:ty,
         non_zero_type = $non_zero_type:ty,
+        radix_type = $radix_type:ty,
         min_value_bits = $min_value_bits:expr,
         min_value_octal_digits = $min_value_octal_digits:expr,
         min_value_hex_digits = $min_value_hex_digits:expr $(,)?
     ) => {
         impl CountDigits for $primitive_type {
+            type Radix = $radix_type;
+
             #[inline(always)]
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
@@ -588,9 +610,32 @@ macro_rules! impl_count_digits {
                     $min_value_hex_digits
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+                match radix {
+                    02 => self.count_bits(),
+                    08 => self.count_octal_digits(),
+                    10 => self.count_digits(),
+                    16 => self.count_hex_digits(),
+                    __ => {
+                        if self >= 0 {
+                            1 + self.abs_diff(0).checked_ilog(radix).unwrap_or_default()
+                        } else {
+                            1 + <$primitive_type>::MIN
+                                .abs_diff(0)
+                                .checked_ilog(radix)
+                                .unwrap_or_default()
+                        }
+                    }
+                }
+            }
         }
 
         impl CountDigits for $non_zero_type {
+            type Radix = $radix_type;
+
             #[inline(always)]
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
@@ -626,6 +671,24 @@ macro_rules! impl_count_digits {
                     $min_value_hex_digits
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+                match radix {
+                    02 => self.count_bits(),
+                    08 => self.count_octal_digits(),
+                    10 => self.count_digits(),
+                    16 => self.count_hex_digits(),
+                    __ => {
+                        if self.is_positive() {
+                            1 + self.get().abs_diff(0).ilog(radix)
+                        } else {
+                            1 + <$non_zero_type>::MIN.get().abs_diff(0).ilog(radix)
+                        }
+                    }
+                }
+            }
         }
     };
     (
@@ -633,6 +696,8 @@ macro_rules! impl_count_digits {
         non_zero_type = $non_zero_type:ty,
     ) => {
         impl CountDigits for $primitive_type {
+            type Radix = $primitive_type;
+
             #[inline(always)]
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
@@ -656,9 +721,23 @@ macro_rules! impl_count_digits {
             fn count_hex_digits(self) -> u32 {
                 1 + self.checked_ilog(16).unwrap_or_default()
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+                match radix {
+                    02 => self.count_bits(),
+                    08 => self.count_octal_digits(),
+                    10 => self.count_digits(),
+                    16 => self.count_hex_digits(),
+                    __ => 1 + self.checked_ilog(radix).unwrap_or_default(),
+                }
+            }
         }
 
         impl CountDigits for $non_zero_type {
+            type Radix = $primitive_type;
+
             #[inline(always)]
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
@@ -682,6 +761,18 @@ macro_rules! impl_count_digits {
             fn count_hex_digits(self) -> u32 {
                 1 + self.get().ilog(16)
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+                match radix {
+                    02 => self.count_bits(),
+                    08 => self.count_octal_digits(),
+                    10 => self.count_digits(),
+                    16 => self.count_hex_digits(),
+                    _ => 1 + self.get().ilog(radix),
+                }
+            }
         }
     };
 }
@@ -689,6 +780,7 @@ macro_rules! impl_count_digits {
 impl_count_digits! {
     primitive_type = i8,
     non_zero_type = NonZeroI8,
+    radix_type = u8,
     min_value_bits = 8,
     min_value_octal_digits = 3,
     min_value_hex_digits = 2,
@@ -697,6 +789,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = i16,
     non_zero_type = NonZeroI16,
+    radix_type = u16,
     min_value_bits = 16,
     min_value_octal_digits = 6,
     min_value_hex_digits = 4,
@@ -705,6 +798,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = i32,
     non_zero_type = NonZeroI32,
+    radix_type = u32,
     min_value_bits = 32,
     min_value_octal_digits = 11,
     min_value_hex_digits = 8,
@@ -713,6 +807,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = i64,
     non_zero_type = NonZeroI64,
+    radix_type = u64,
     min_value_bits = 64,
     min_value_octal_digits = 22,
     min_value_hex_digits = 16,
@@ -721,6 +816,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = i128,
     non_zero_type = NonZeroI128,
+    radix_type = u128,
     min_value_bits = 128,
     min_value_octal_digits = 43,
     min_value_hex_digits = 32,
@@ -730,6 +826,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    radix_type = usize,
     min_value_bits = 64,
     min_value_octal_digits = 22,
     min_value_hex_digits = 16,
@@ -739,6 +836,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    radix_type = usize,
     min_value_bits = 32,
     min_value_octal_digits = 11,
     min_value_hex_digits = 8,
@@ -748,6 +846,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    radix_type = usize,
     min_value_bits = 16,
     min_value_octal_digits = 6,
     min_value_hex_digits = 4,
@@ -757,6 +856,7 @@ impl_count_digits! {
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    radix_type = usize,
     min_value_bits = 8,
     min_value_octal_digits = 3,
     min_value_hex_digits = 2,
