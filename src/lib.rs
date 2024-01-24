@@ -435,6 +435,113 @@ pub trait CountDigits: Copy + Sized {
     /// }
     /// ```
     fn count_digits(self) -> u32;
+
+    /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
+    /// ### Examples
+    /// ```rust
+    /// use count_digits::CountDigits;
+    /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
+    /// # use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+    ///
+    /// assert_eq!(02, i8::MIN.count_hex_digits());
+    /// assert_eq!(02, i8::MAX.count_hex_digits());
+    /// assert_eq!(02, NonZeroI8::MIN.count_hex_digits());
+    /// assert_eq!(02, NonZeroI8::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(01, u8::MIN.count_hex_digits());
+    /// assert_eq!(02, u8::MAX.count_hex_digits());
+    /// assert_eq!(01, NonZeroU8::MIN.count_hex_digits());
+    /// assert_eq!(02, NonZeroU8::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(04, i16::MIN.count_hex_digits());
+    /// assert_eq!(04, i16::MAX.count_hex_digits());
+    /// assert_eq!(04, NonZeroI16::MIN.count_hex_digits());
+    /// assert_eq!(04, NonZeroI16::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(01, u16::MIN.count_hex_digits());
+    /// assert_eq!(04, u16::MAX.count_hex_digits());
+    /// assert_eq!(01, NonZeroU16::MIN.count_hex_digits());
+    /// assert_eq!(04, NonZeroU16::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(08, i32::MIN.count_hex_digits());
+    /// assert_eq!(08, i32::MAX.count_hex_digits());
+    /// assert_eq!(08, NonZeroI32::MIN.count_hex_digits());
+    /// assert_eq!(08, NonZeroI32::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(01, u32::MIN.count_hex_digits());
+    /// assert_eq!(08, u32::MAX.count_hex_digits());
+    /// assert_eq!(01, NonZeroU32::MIN.count_hex_digits());
+    /// assert_eq!(08, NonZeroU32::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(16, i64::MIN.count_hex_digits());
+    /// assert_eq!(16, i64::MAX.count_hex_digits());
+    /// assert_eq!(16, NonZeroI64::MIN.count_hex_digits());
+    /// assert_eq!(16, NonZeroI64::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(01, u64::MIN.count_hex_digits());
+    /// assert_eq!(16, u64::MAX.count_hex_digits());
+    /// assert_eq!(01, NonZeroU64::MIN.count_hex_digits());
+    /// assert_eq!(16, NonZeroU64::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(32, i128::MIN.count_hex_digits());
+    /// assert_eq!(32, i128::MAX.count_hex_digits());
+    /// assert_eq!(32, NonZeroI128::MIN.count_hex_digits());
+    /// assert_eq!(32, NonZeroI128::MAX.count_hex_digits());
+    ///
+    /// assert_eq!(01, u128::MIN.count_hex_digits());
+    /// assert_eq!(32, u128::MAX.count_hex_digits());
+    /// assert_eq!(01, NonZeroU128::MIN.count_hex_digits());
+    /// assert_eq!(32, NonZeroU128::MAX.count_hex_digits());
+    ///
+    /// #[cfg(target_pointer_width = "64")] {
+    ///   assert_eq!(isize::MIN.count_hex_digits(), i64::MIN.count_hex_digits());
+    ///   assert_eq!(isize::MAX.count_hex_digits(), i64::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_hex_digits(), NonZeroI64::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_hex_digits(), NonZeroI64::MAX.count_hex_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_hex_digits(), u64::MIN.count_hex_digits());
+    ///   assert_eq!(usize::MAX.count_hex_digits(), u64::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_hex_digits(), NonZeroU64::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_hex_digits(), NonZeroU64::MAX.count_hex_digits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "32")] {
+    ///   assert_eq!(isize::MIN.count_hex_digits(), i32::MIN.count_hex_digits());
+    ///   assert_eq!(isize::MAX.count_hex_digits(), i32::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_hex_digits(), NonZeroI32::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_hex_digits(), NonZeroI32::MAX.count_hex_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_hex_digits(), u32::MIN.count_hex_digits());
+    ///   assert_eq!(usize::MAX.count_hex_digits(), u32::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_hex_digits(), NonZeroU32::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_hex_digits(), NonZeroU32::MAX.count_hex_digits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "16")] {
+    ///   assert_eq!(isize::MIN.count_hex_digits(), i16::MIN.count_hex_digits());
+    ///   assert_eq!(isize::MAX.count_hex_digits(), i16::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_hex_digits(), NonZeroI16::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_hex_digits(), NonZeroI16::MAX.count_hex_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_hex_digits(), u16::MIN.count_hex_digits());
+    ///   assert_eq!(usize::MAX.count_hex_digits(), u16::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_hex_digits(), NonZeroU16::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_hex_digits(), NonZeroU16::MAX.count_hex_digits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "8")] {
+    ///   assert_eq!(isize::MIN.count_hex_digits(), i8::MIN.count_hex_digits());
+    ///   assert_eq!(isize::MAX.count_hex_digits(), i8::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_hex_digits(), NonZeroI8::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_hex_digits(), NonZeroI8::MAX.count_hex_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_hex_digits(), u8::MIN.count_hex_digits());
+    ///   assert_eq!(usize::MAX.count_hex_digits(), u8::MAX.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_hex_digits(), NonZeroU8::MIN.count_hex_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_hex_digits(), NonZeroU8::MAX.count_hex_digits());
+    /// }
+    /// ```
+    fn count_hex_digits(self) -> u32;
 }
 
 macro_rules! impl_count_digits {
@@ -443,6 +550,7 @@ macro_rules! impl_count_digits {
         non_zero_type = $non_zero_type:ty,
         min_value_bits = $min_value_bits:expr,
         min_value_octal_digits = $min_value_octal_digits:expr,
+        min_value_hex_digits = $min_value_hex_digits:expr $(,)?
     ) => {
         impl CountDigits for $primitive_type {
             #[inline(always)]
@@ -468,6 +576,16 @@ macro_rules! impl_count_digits {
                     1 + self.abs_diff(0).checked_ilog(8).unwrap_or_default()
                 } else {
                     $min_value_octal_digits
+                }
+            }
+
+            #[inline(always)]
+            /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
+            fn count_hex_digits(self) -> u32 {
+                if self >= 0 {
+                    1 + self.abs_diff(0).checked_ilog(16).unwrap_or_default()
+                } else {
+                    $min_value_hex_digits
                 }
             }
         }
@@ -498,6 +616,16 @@ macro_rules! impl_count_digits {
                     $min_value_octal_digits
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
+            fn count_hex_digits(self) -> u32 {
+                if self.is_positive() {
+                    1 + self.get().abs_diff(0).ilog(16)
+                } else {
+                    $min_value_hex_digits
+                }
+            }
         }
     };
     (
@@ -522,6 +650,12 @@ macro_rules! impl_count_digits {
             fn count_octal_digits(self) -> u32 {
                 1 + self.checked_ilog(8).unwrap_or_default()
             }
+
+            #[inline(always)]
+            /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
+            fn count_hex_digits(self) -> u32 {
+                1 + self.checked_ilog(16).unwrap_or_default()
+            }
         }
 
         impl CountDigits for $non_zero_type {
@@ -542,6 +676,12 @@ macro_rules! impl_count_digits {
             fn count_octal_digits(self) -> u32 {
                 1 + self.get().ilog(8)
             }
+
+            #[inline(always)]
+            /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
+            fn count_hex_digits(self) -> u32 {
+                1 + self.get().ilog(16)
+            }
         }
     };
 }
@@ -551,6 +691,7 @@ impl_count_digits! {
     non_zero_type = NonZeroI8,
     min_value_bits = 8,
     min_value_octal_digits = 3,
+    min_value_hex_digits = 2,
 }
 
 impl_count_digits! {
@@ -558,6 +699,7 @@ impl_count_digits! {
     non_zero_type = NonZeroI16,
     min_value_bits = 16,
     min_value_octal_digits = 6,
+    min_value_hex_digits = 4,
 }
 
 impl_count_digits! {
@@ -565,6 +707,7 @@ impl_count_digits! {
     non_zero_type = NonZeroI32,
     min_value_bits = 32,
     min_value_octal_digits = 11,
+    min_value_hex_digits = 8,
 }
 
 impl_count_digits! {
@@ -572,6 +715,7 @@ impl_count_digits! {
     non_zero_type = NonZeroI64,
     min_value_bits = 64,
     min_value_octal_digits = 22,
+    min_value_hex_digits = 16,
 }
 
 impl_count_digits! {
@@ -579,6 +723,7 @@ impl_count_digits! {
     non_zero_type = NonZeroI128,
     min_value_bits = 128,
     min_value_octal_digits = 43,
+    min_value_hex_digits = 32,
 }
 
 #[cfg(target_pointer_width = "64")]
@@ -587,6 +732,7 @@ impl_count_digits! {
     non_zero_type = NonZeroIsize,
     min_value_bits = 64,
     min_value_octal_digits = 22,
+    min_value_hex_digits = 16,
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -595,6 +741,7 @@ impl_count_digits! {
     non_zero_type = NonZeroIsize,
     min_value_bits = 32,
     min_value_octal_digits = 11,
+    min_value_hex_digits = 8,
 }
 
 #[cfg(target_pointer_width = "16")]
@@ -603,6 +750,7 @@ impl_count_digits! {
     non_zero_type = NonZeroIsize,
     min_value_bits = 16,
     min_value_octal_digits = 6,
+    min_value_hex_digits = 4,
 }
 
 #[cfg(target_pointer_width = "8")]
@@ -611,6 +759,7 @@ impl_count_digits! {
     non_zero_type = NonZeroIsize,
     min_value_bits = 8,
     min_value_octal_digits = 3,
+    min_value_hex_digits = 2,
 }
 
 impl_count_digits! {
