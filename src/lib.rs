@@ -998,6 +998,41 @@ mod count_digits {
         };
     }
 
+    macro_rules! assert_representations {
+        ($n:expr) => {
+            assert_eq!($n.count_bits(), binary_string_count!($n));
+            assert_eq!($n.count_digits_radix(2), binary_string_count!($n));
+
+            assert_eq!($n.count_octal_digits(), octal_string_count!($n));
+            assert_eq!($n.count_digits_radix(8), octal_string_count!($n));
+
+            assert_eq!($n.count_digits(), decimal_string_count!($n));
+            assert_eq!($n.count_digits_radix(10), decimal_string_count!($n));
+
+            assert_eq!($n.count_hex_digits(), hex_string_count!($n));
+            assert_eq!($n.count_digits_radix(16), hex_string_count!($n));
+
+            assert!([
+                $n.count_digits_radix(2),
+                $n.count_digits_radix(3),
+                $n.count_digits_radix(4),
+                $n.count_digits_radix(5),
+                $n.count_digits_radix(6),
+                $n.count_digits_radix(7),
+                $n.count_digits_radix(8),
+                $n.count_digits_radix(9),
+                $n.count_digits_radix(11),
+                $n.count_digits_radix(12),
+                $n.count_digits_radix(13),
+                $n.count_digits_radix(14),
+                $n.count_digits_radix(15),
+                $n.count_digits_radix(16),
+            ]
+            .windows(2)
+            .all(|window| window[0] >= window[1]));
+        };
+    }
+
     macro_rules! min_and_max {
         ($type:ty, $non_zero_type:ty) => {
             paste! {
@@ -1023,14 +1058,7 @@ mod count_digits {
                 fn [<min_to_max_or_one_million_ $type>]() {
                     let max = if ($type::MAX as u128) < 1_000_000 { $type::MAX } else { 1_000_000 };
                     for n in $type::MIN..=max {
-                        let i128 = n as i128;
-                             if i128  < 10        { assert_eq!(n.count_digits(), 1, "Expect count of 1 for {n}") }
-                        else if i128  < 100       { assert_eq!(n.count_digits(), 2, "Expect count of 2 for {n}") }
-                        else if i128  < 1_000     { assert_eq!(n.count_digits(), 3, "Expect count of 3 for {n}") }
-                        else if i128  < 10_000    { assert_eq!(n.count_digits(), 4, "Expect count of 4 for {n}") }
-                        else if i128  < 100_000   { assert_eq!(n.count_digits(), 5, "Expect count of 5 for {n}") }
-                        else if i128  < 1_000_000 { assert_eq!(n.count_digits(), 6, "Expect count of 6 for {n}") }
-                        else if i128 == 1_000_000 { assert_eq!(n.count_digits(), 7, "Expect count of 7 for {n}") }
+                        assert_representations!(n);
                     }
                 }
 
@@ -1040,15 +1068,7 @@ mod count_digits {
                 fn [<min_to_max_or_one_million_ $non_zero_type>]() {
                     let max = if ($type::MAX as u128) < 1_000_000 { $type::MAX } else { 1_000_000 };
                     for n in $non_zero_type::MIN.get()..=max {
-                        let i128 = n as u128;
-                        let n = $non_zero_type::new(n).unwrap();
-                             if i128  < 10        { assert_eq!(n.count_digits(), 1, "Expect count of 1 for {n}") }
-                        else if i128  < 100       { assert_eq!(n.count_digits(), 2, "Expect count of 2 for {n}") }
-                        else if i128  < 1_000     { assert_eq!(n.count_digits(), 3, "Expect count of 3 for {n}") }
-                        else if i128  < 10_000    { assert_eq!(n.count_digits(), 4, "Expect count of 4 for {n}") }
-                        else if i128  < 100_000   { assert_eq!(n.count_digits(), 5, "Expect count of 5 for {n}") }
-                        else if i128  < 1_000_000 { assert_eq!(n.count_digits(), 6, "Expect count of 6 for {n}") }
-                        else if i128 == 1_000_000 { assert_eq!(n.count_digits(), 7, "Expect count of 7 for {n}") }
+                        assert_representations!(n);
                     }
                 }
             }
@@ -1064,20 +1084,7 @@ mod count_digits {
                     let max = if ($type::MAX as u128) <  1_000_000 { $type::MAX } else {  1_000_000 };
                     let min = if ($type::MIN as i128) > -1_000_000 { $type::MIN } else { -1_000_000 };
                     for n in min..=max {
-                        let i128 = n as i128;
-                             if i128 == -1_000_000 { assert_eq!(n.count_digits(), 7, "Expect count of 7 for {n}") }
-                        else if i128  < -99_999    { assert_eq!(n.count_digits(), 6, "Expect count of 6 for {n}") }
-                        else if i128  < -9_999     { assert_eq!(n.count_digits(), 5, "Expect count of 5 for {n}") }
-                        else if i128  < -999       { assert_eq!(n.count_digits(), 4, "Expect count of 4 for {n}") }
-                        else if i128  < -99        { assert_eq!(n.count_digits(), 3, "Expect count of 3 for {n}") }
-                        else if i128  < -9         { assert_eq!(n.count_digits(), 2, "Expect count of 2 for {n}") }
-                        else if i128  < 10         { assert_eq!(n.count_digits(), 1, "Expect count of 1 for {n}") }
-                        else if i128  < 100        { assert_eq!(n.count_digits(), 2, "Expect count of 2 for {n}") }
-                        else if i128  < 1_000      { assert_eq!(n.count_digits(), 3, "Expect count of 3 for {n}") }
-                        else if i128  < 10_000     { assert_eq!(n.count_digits(), 4, "Expect count of 4 for {n}") }
-                        else if i128  < 100_000    { assert_eq!(n.count_digits(), 5, "Expect count of 5 for {n}") }
-                        else if i128  < 1_000_000  { assert_eq!(n.count_digits(), 6, "Expect count of 6 for {n}") }
-                        else if i128 == 1_000_000  { assert_eq!(n.count_digits(), 7, "Expect count of 7 for {n}") }
+                        assert_representations!(n);
                     }
                 }
 
@@ -1089,21 +1096,8 @@ mod count_digits {
                     let min = if ($type::MIN as i128) > -1_000_000 { $type::MIN } else { -1_000_000 };
                     for n in min..=max {
                         if n == 0 { continue; }
-                        let i128 = n as i128;
                         let n = $non_zero_type::new(n).unwrap();
-                             if i128 == -1_000_000 { assert_eq!(n.count_digits(), 7, "Expect count of 6 for {n}") }
-                        else if i128  < -99_999    { assert_eq!(n.count_digits(), 6, "Expect count of 6 for {n}") }
-                        else if i128  < -9_999     { assert_eq!(n.count_digits(), 5, "Expect count of 5 for {n}") }
-                        else if i128  < -999       { assert_eq!(n.count_digits(), 4, "Expect count of 4 for {n}") }
-                        else if i128  < -99        { assert_eq!(n.count_digits(), 3, "Expect count of 3 for {n}") }
-                        else if i128  < -9         { assert_eq!(n.count_digits(), 2, "Expect count of 2 for {n}") }
-                        else if i128  < 10         { assert_eq!(n.count_digits(), 1, "Expect count of 1 for {n}") }
-                        else if i128  < 100        { assert_eq!(n.count_digits(), 2, "Expect count of 2 for {n}") }
-                        else if i128  < 1_000      { assert_eq!(n.count_digits(), 3, "Expect count of 3 for {n}") }
-                        else if i128  < 10_000     { assert_eq!(n.count_digits(), 4, "Expect count of 4 for {n}") }
-                        else if i128  < 100_000    { assert_eq!(n.count_digits(), 5, "Expect count of 5 for {n}") }
-                        else if i128  < 1_000_000  { assert_eq!(n.count_digits(), 6, "Expect count of 6 for {n}") }
-                        else if i128 == 1_000_000  { assert_eq!(n.count_digits(), 7, "Expect count of 7 for {n}") }
+                        assert_representations!(n);
                     }
                 }
             }
