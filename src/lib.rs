@@ -222,6 +222,113 @@ pub trait CountDigits: Copy + Sized {
     /// ```
     fn count_bits(self) -> u32;
 
+    /// Returns the count of octal digits in an integer starting with the first non-zero digit.
+    /// ### Examples
+    /// ```rust
+    /// use count_digits::CountDigits;
+    /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
+    /// # use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+    ///
+    /// assert_eq!(03, i8::MIN.count_octal_digits());
+    /// assert_eq!(03, i8::MAX.count_octal_digits());
+    /// assert_eq!(03, NonZeroI8::MIN.count_octal_digits());
+    /// assert_eq!(03, NonZeroI8::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(01, u8::MIN.count_octal_digits());
+    /// assert_eq!(03, u8::MAX.count_octal_digits());
+    /// assert_eq!(01, NonZeroU8::MIN.count_octal_digits());
+    /// assert_eq!(03, NonZeroU8::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(06, i16::MIN.count_octal_digits());
+    /// assert_eq!(05, i16::MAX.count_octal_digits());
+    /// assert_eq!(06, NonZeroI16::MIN.count_octal_digits());
+    /// assert_eq!(05, NonZeroI16::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(01, u16::MIN.count_octal_digits());
+    /// assert_eq!(06, u16::MAX.count_octal_digits());
+    /// assert_eq!(01, NonZeroU16::MIN.count_octal_digits());
+    /// assert_eq!(06, NonZeroU16::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(11, i32::MIN.count_octal_digits());
+    /// assert_eq!(11, i32::MAX.count_octal_digits());
+    /// assert_eq!(11, NonZeroI32::MIN.count_octal_digits());
+    /// assert_eq!(11, NonZeroI32::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(01, u32::MIN.count_octal_digits());
+    /// assert_eq!(11, u32::MAX.count_octal_digits());
+    /// assert_eq!(01, NonZeroU32::MIN.count_octal_digits());
+    /// assert_eq!(11, NonZeroU32::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(22, i64::MIN.count_octal_digits());
+    /// assert_eq!(21, i64::MAX.count_octal_digits());
+    /// assert_eq!(22, NonZeroI64::MIN.count_octal_digits());
+    /// assert_eq!(21, NonZeroI64::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(01, u64::MIN.count_octal_digits());
+    /// assert_eq!(22, u64::MAX.count_octal_digits());
+    /// assert_eq!(01, NonZeroU64::MIN.count_octal_digits());
+    /// assert_eq!(22, NonZeroU64::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(43, i128::MIN.count_octal_digits());
+    /// assert_eq!(43, i128::MAX.count_octal_digits());
+    /// assert_eq!(43, NonZeroI128::MIN.count_octal_digits());
+    /// assert_eq!(43, NonZeroI128::MAX.count_octal_digits());
+    ///
+    /// assert_eq!(01, u128::MIN.count_octal_digits());
+    /// assert_eq!(43, u128::MAX.count_octal_digits());
+    /// assert_eq!(01, NonZeroU128::MIN.count_octal_digits());
+    /// assert_eq!(43, NonZeroU128::MAX.count_octal_digits());
+    ///
+    /// #[cfg(target_pointer_width = "64")] {
+    ///   assert_eq!(isize::MIN.count_octal_digits(), i64::MIN.count_octal_digits());
+    ///   assert_eq!(isize::MAX.count_octal_digits(), i64::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_octal_digits(), NonZeroI64::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_octal_digits(), NonZeroI64::MAX.count_octal_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_octal_digits(), u64::MIN.count_octal_digits());
+    ///   assert_eq!(usize::MAX.count_octal_digits(), u64::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_octal_digits(), NonZeroU64::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_octal_digits(), NonZeroU64::MAX.count_octal_digits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "32")] {
+    ///   assert_eq!(isize::MIN.count_octal_digits(), i32::MIN.count_octal_digits());
+    ///   assert_eq!(isize::MAX.count_octal_digits(), i32::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_octal_digits(), NonZeroI32::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_octal_digits(), NonZeroI32::MAX.count_octal_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_octal_digits(), u32::MIN.count_octal_digits());
+    ///   assert_eq!(usize::MAX.count_octal_digits(), u32::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_octal_digits(), NonZeroU32::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_octal_digits(), NonZeroU32::MAX.count_octal_digits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "16")] {
+    ///   assert_eq!(isize::MIN.count_octal_digits(), i16::MIN.count_octal_digits());
+    ///   assert_eq!(isize::MAX.count_octal_digits(), i16::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_octal_digits(), NonZeroI16::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_octal_digits(), NonZeroI16::MAX.count_octal_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_octal_digits(), u16::MIN.count_octal_digits());
+    ///   assert_eq!(usize::MAX.count_octal_digits(), u16::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_octal_digits(), NonZeroU16::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_octal_digits(), NonZeroU16::MAX.count_octal_digits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "8")] {
+    ///   assert_eq!(isize::MIN.count_octal_digits(), i8::MIN.count_octal_digits());
+    ///   assert_eq!(isize::MAX.count_octal_digits(), i8::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_octal_digits(), NonZeroI8::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_octal_digits(), NonZeroI8::MAX.count_octal_digits());
+    ///
+    ///   assert_eq!(usize::MIN.count_octal_digits(), u8::MIN.count_octal_digits());
+    ///   assert_eq!(usize::MAX.count_octal_digits(), u8::MAX.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_octal_digits(), NonZeroU8::MIN.count_octal_digits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_octal_digits(), NonZeroU8::MAX.count_octal_digits());
+    /// }
+    /// ```
+    fn count_octal_digits(self) -> u32;
+
     /// Returns the count of decimal digits in an integer.
     /// ### Examples
     /// ```rust
@@ -335,6 +442,7 @@ macro_rules! impl_count_digits {
         primitive_type = $primitive_type:ty,
         non_zero_type = $non_zero_type:ty,
         min_value_bits = $min_value_bits:expr,
+        min_value_octal_digits = $min_value_octal_digits:expr,
     ) => {
         impl CountDigits for $primitive_type {
             #[inline(always)]
@@ -351,6 +459,16 @@ macro_rules! impl_count_digits {
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
                 1 + self.abs_diff(0).checked_ilog10().unwrap_or_default()
+            }
+
+            #[inline(always)]
+            /// Returns the count of octal digits in an integer starting with the first non-zero digit.
+            fn count_octal_digits(self) -> u32 {
+                if self >= 0 {
+                    1 + self.abs_diff(0).checked_ilog(8).unwrap_or_default()
+                } else {
+                    $min_value_octal_digits
+                }
             }
         }
 
@@ -370,6 +488,16 @@ macro_rules! impl_count_digits {
             fn count_digits(self) -> u32 {
                 1 + self.get().abs_diff(0).ilog10()
             }
+
+            #[inline(always)]
+            /// Returns the count of octal digits in an integer starting with the first non-zero digit.
+            fn count_octal_digits(self) -> u32 {
+                if self.is_positive() {
+                    1 + self.get().abs_diff(0).ilog(8)
+                } else {
+                    $min_value_octal_digits
+                }
+            }
         }
     };
     (
@@ -388,6 +516,12 @@ macro_rules! impl_count_digits {
             fn count_digits(self) -> u32 {
                 1 + self.checked_ilog10().unwrap_or_default()
             }
+
+            #[inline(always)]
+            /// Returns the count of octal digits in an integer starting with the first non-zero digit.
+            fn count_octal_digits(self) -> u32 {
+                1 + self.checked_ilog(8).unwrap_or_default()
+            }
         }
 
         impl CountDigits for $non_zero_type {
@@ -402,6 +536,12 @@ macro_rules! impl_count_digits {
             fn count_digits(self) -> u32 {
                 1 + self.ilog10()
             }
+
+            #[inline(always)]
+            /// Returns the count of octal digits in an integer starting with the first non-zero digit.
+            fn count_octal_digits(self) -> u32 {
+                1 + self.get().ilog(8)
+            }
         }
     };
 }
@@ -410,30 +550,35 @@ impl_count_digits! {
     primitive_type = i8,
     non_zero_type = NonZeroI8,
     min_value_bits = 8,
+    min_value_octal_digits = 3,
 }
 
 impl_count_digits! {
     primitive_type = i16,
     non_zero_type = NonZeroI16,
     min_value_bits = 16,
+    min_value_octal_digits = 6,
 }
 
 impl_count_digits! {
     primitive_type = i32,
     non_zero_type = NonZeroI32,
     min_value_bits = 32,
+    min_value_octal_digits = 11,
 }
 
 impl_count_digits! {
     primitive_type = i64,
     non_zero_type = NonZeroI64,
     min_value_bits = 64,
+    min_value_octal_digits = 22,
 }
 
 impl_count_digits! {
     primitive_type = i128,
     non_zero_type = NonZeroI128,
     min_value_bits = 128,
+    min_value_octal_digits = 43,
 }
 
 #[cfg(target_pointer_width = "64")]
@@ -441,6 +586,7 @@ impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
     min_value_bits = 64,
+    min_value_octal_digits = 22,
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -448,6 +594,7 @@ impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
     min_value_bits = 32,
+    min_value_octal_digits = 11,
 }
 
 #[cfg(target_pointer_width = "16")]
@@ -455,6 +602,7 @@ impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
     min_value_bits = 16,
+    min_value_octal_digits = 6,
 }
 
 #[cfg(target_pointer_width = "8")]
@@ -462,6 +610,7 @@ impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
     min_value_bits = 8,
+    min_value_octal_digits = 3,
 }
 
 impl_count_digits! {
