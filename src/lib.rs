@@ -548,10 +548,10 @@ macro_rules! impl_count_digits {
             #[inline(always)]
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
-                if self >= 0 {
-                    1 + self.abs_diff(0).checked_ilog2().unwrap_or_default()
-                } else {
+                if self.is_negative() {
                     $min_value_bits
+                } else {
+                    1 + self.abs_diff(0).checked_ilog2().unwrap_or_default()
                 }
             }
 
@@ -564,20 +564,20 @@ macro_rules! impl_count_digits {
             #[inline(always)]
             /// Returns the count of octal digits in an integer starting with the first non-zero digit.
             fn count_octal_digits(self) -> u32 {
-                if self >= 0 {
-                    1 + self.abs_diff(0).checked_ilog(8).unwrap_or_default()
-                } else {
+                if self.is_negative() {
                     $min_value_octal_digits
+                } else {
+                    1 + self.abs_diff(0).checked_ilog(8).unwrap_or_default()
                 }
             }
 
             #[inline(always)]
             /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
             fn count_hex_digits(self) -> u32 {
-                if self >= 0 {
-                    1 + self.abs_diff(0).checked_ilog(16).unwrap_or_default()
-                } else {
+                if self.is_negative() {
                     $min_value_hex_digits
+                } else {
+                    1 + self.abs_diff(0).checked_ilog(16).unwrap_or_default()
                 }
             }
 
@@ -590,13 +590,13 @@ macro_rules! impl_count_digits {
                     10 => self.count_digits(),
                     16 => self.count_hex_digits(),
                     __ => {
-                        if self >= 0 {
-                            1 + self.abs_diff(0).checked_ilog(radix).unwrap_or_default()
-                        } else {
+                        if self.is_negative() {
                             1 + <$primitive_type>::MIN
                                 .abs_diff(0)
                                 .checked_ilog(radix)
                                 .unwrap_or_default()
+                        } else {
+                            1 + self.abs_diff(0).checked_ilog(radix).unwrap_or_default()
                         }
                     }
                 }
@@ -609,10 +609,10 @@ macro_rules! impl_count_digits {
             #[inline(always)]
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
-                if self.is_positive() {
-                    1 + self.get().abs_diff(0).ilog2()
-                } else {
+                if self.is_negative() {
                     $min_value_bits
+                } else {
+                    1 + self.get().abs_diff(0).ilog2()
                 }
             }
 
@@ -625,20 +625,20 @@ macro_rules! impl_count_digits {
             #[inline(always)]
             /// Returns the count of octal digits in an integer starting with the first non-zero digit.
             fn count_octal_digits(self) -> u32 {
-                if self.is_positive() {
-                    1 + self.get().abs_diff(0).ilog(8)
-                } else {
+                if self.is_negative() {
                     $min_value_octal_digits
+                } else {
+                    1 + self.get().abs_diff(0).ilog(8)
                 }
             }
 
             #[inline(always)]
             /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
             fn count_hex_digits(self) -> u32 {
-                if self.is_positive() {
-                    1 + self.get().abs_diff(0).ilog(16)
-                } else {
+                if self.is_negative() {
                     $min_value_hex_digits
+                } else {
+                    1 + self.get().abs_diff(0).ilog(16)
                 }
             }
 
@@ -651,10 +651,10 @@ macro_rules! impl_count_digits {
                     10 => self.count_digits(),
                     16 => self.count_hex_digits(),
                     __ => {
-                        if self.is_positive() {
-                            1 + self.get().abs_diff(0).ilog(radix)
-                        } else {
+                        if self.is_negative() {
                             1 + <$non_zero_type>::MIN.get().abs_diff(0).ilog(radix)
+                        } else {
+                            1 + self.get().abs_diff(0).ilog(radix)
                         }
                     }
                 }
@@ -888,7 +888,7 @@ mod count_digits {
 
     macro_rules! hex_string_count {
         ($n:expr) => {
-            format!("{:X}", $n).len() as u32
+            format!("{:x}", $n).len() as u32
         };
     }
 
