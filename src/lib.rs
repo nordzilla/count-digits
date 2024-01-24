@@ -1040,6 +1040,7 @@ mod count_digits {
                 fn [<min_to_max_or_one_million_ $non_zero_type>]() {
                     let max = if ($type::MAX as u128) < 1_000_000 { $type::MAX } else { 1_000_000 };
                     for n in $non_zero_type::MIN.get()..=max {
+                        let n = $non_zero_type::new(n).unwrap();
                         assert_representations!(n);
                     }
                 }
