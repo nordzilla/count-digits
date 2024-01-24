@@ -2,120 +2,87 @@
 #![allow(clippy::zero_prefixed_literal)]
 //! # CountDigits
 //!
-//! A trait to count the decimal digits of an integer.
+//! A [no_std](https://docs.rust-embedded.org/book/intro/no-std.html) trait to count
+//! the digits of an integer in various number bases.
 //!
-//! [CountDigits] is compatible with all the primitive integer types,
-//! and all non-zero integer types.
+//! Compatible with all primitive integer types and all non-zero integer types.
 //!
-//! ### Examples
+//! #### Examples
 //! ```rust
 //! use count_digits::CountDigits;
-//! # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
-//! # use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+//! use core::num::NonZeroIsize;
 //!
-//! assert_eq!(03, i8::MIN.count_digits());
-//! assert_eq!(03, i8::MAX.count_digits());
-//! assert_eq!(03, NonZeroI8::MIN.count_digits());
-//! assert_eq!(03, NonZeroI8::MAX.count_digits());
+//! assert_eq!(16, 0b1111000000001101.count_bits());
+//! assert_eq!(16, 0b1111000000001101.count_digits_radix(2_u32));
 //!
-//! assert_eq!(01, u8::MIN.count_digits());
-//! assert_eq!(03, u8::MAX.count_digits());
-//! assert_eq!(01, NonZeroU8::MIN.count_digits());
-//! assert_eq!(03, NonZeroU8::MAX.count_digits());
+//! assert_eq!(06, 0o170015.count_octal_digits());
+//! assert_eq!(06, 0o170015.count_digits_radix(8_u32));
 //!
-//! assert_eq!(05, i16::MIN.count_digits());
-//! assert_eq!(05, i16::MAX.count_digits());
-//! assert_eq!(05, NonZeroI16::MIN.count_digits());
-//! assert_eq!(05, NonZeroI16::MAX.count_digits());
+//! assert_eq!(05, 61453.count_digits());
+//! assert_eq!(05, 61453.count_digits_radix(10_u32));
 //!
-//! assert_eq!(01, u16::MIN.count_digits());
-//! assert_eq!(05, u16::MAX.count_digits());
-//! assert_eq!(01, NonZeroU16::MIN.count_digits());
-//! assert_eq!(05, NonZeroU16::MAX.count_digits());
+//! assert_eq!(04, 0xF00D.count_hex_digits());
+//! assert_eq!(04, 0xF00D.count_digits_radix(16_u32));
 //!
-//! assert_eq!(10, i32::MIN.count_digits());
-//! assert_eq!(10, i32::MAX.count_digits());
-//! assert_eq!(10, NonZeroI32::MIN.count_digits());
-//! assert_eq!(10, NonZeroI32::MAX.count_digits());
-//!
-//! assert_eq!(01, u32::MIN.count_digits());
-//! assert_eq!(10, u32::MAX.count_digits());
-//! assert_eq!(01, NonZeroU32::MIN.count_digits());
-//! assert_eq!(10, NonZeroU32::MAX.count_digits());
-//!
-//! assert_eq!(19, i64::MIN.count_digits());
-//! assert_eq!(19, i64::MAX.count_digits());
-//! assert_eq!(19, NonZeroI64::MIN.count_digits());
-//! assert_eq!(19, NonZeroI64::MAX.count_digits());
-//!
-//! assert_eq!(01, u64::MIN.count_digits());
-//! assert_eq!(20, u64::MAX.count_digits());
-//! assert_eq!(01, NonZeroU64::MIN.count_digits());
-//! assert_eq!(20, NonZeroU64::MAX.count_digits());
-//!
-//! assert_eq!(39, i128::MIN.count_digits());
-//! assert_eq!(39, i128::MAX.count_digits());
-//! assert_eq!(39, NonZeroI128::MIN.count_digits());
-//! assert_eq!(39, NonZeroI128::MAX.count_digits());
-//!
-//! assert_eq!(01, u128::MIN.count_digits());
-//! assert_eq!(39, u128::MAX.count_digits());
-//! assert_eq!(01, NonZeroU128::MIN.count_digits());
-//! assert_eq!(39, NonZeroU128::MAX.count_digits());
-//!
-//! #[cfg(target_pointer_width = "64")] {
-//!   assert_eq!(isize::MIN.count_digits(), i64::MIN.count_digits());
-//!   assert_eq!(isize::MAX.count_digits(), i64::MAX.count_digits());
-//!   assert_eq!(NonZeroIsize::MIN.count_digits(), NonZeroI64::MIN.count_digits());
-//!   assert_eq!(NonZeroIsize::MAX.count_digits(), NonZeroI64::MAX.count_digits());
-//!
-//!   assert_eq!(usize::MIN.count_digits(), u64::MIN.count_digits());
-//!   assert_eq!(usize::MAX.count_digits(), u64::MAX.count_digits());
-//!   assert_eq!(NonZeroUsize::MIN.count_digits(), NonZeroU64::MIN.count_digits());
-//!   assert_eq!(NonZeroUsize::MAX.count_digits(), NonZeroU64::MAX.count_digits());
-//! }
-//!
-//! #[cfg(target_pointer_width = "32")] {
-//!   assert_eq!(isize::MIN.count_digits(), i32::MIN.count_digits());
-//!   assert_eq!(isize::MAX.count_digits(), i32::MAX.count_digits());
-//!   assert_eq!(NonZeroIsize::MIN.count_digits(), NonZeroI32::MIN.count_digits());
-//!   assert_eq!(NonZeroIsize::MAX.count_digits(), NonZeroI32::MAX.count_digits());
-//!
-//!   assert_eq!(usize::MIN.count_digits(), u32::MIN.count_digits());
-//!   assert_eq!(usize::MAX.count_digits(), u32::MAX.count_digits());
-//!   assert_eq!(NonZeroUsize::MIN.count_digits(), NonZeroU32::MIN.count_digits());
-//!   assert_eq!(NonZeroUsize::MAX.count_digits(), NonZeroU32::MAX.count_digits());
-//! }
-//!
-//! #[cfg(target_pointer_width = "16")] {
-//!   assert_eq!(isize::MIN.count_digits(), i16::MIN.count_digits());
-//!   assert_eq!(isize::MAX.count_digits(), i16::MAX.count_digits());
-//!   assert_eq!(NonZeroIsize::MIN.count_digits(), NonZeroI16::MIN.count_digits());
-//!   assert_eq!(NonZeroIsize::MAX.count_digits(), NonZeroI16::MAX.count_digits());
-//!
-//!   assert_eq!(usize::MIN.count_digits(), u16::MIN.count_digits());
-//!   assert_eq!(usize::MAX.count_digits(), u16::MAX.count_digits());
-//!   assert_eq!(NonZeroUsize::MIN.count_digits(), NonZeroU16::MIN.count_digits());
-//!   assert_eq!(NonZeroUsize::MAX.count_digits(), NonZeroU16::MAX.count_digits());
-//! }
-//!
-//! #[cfg(target_pointer_width = "8")] {
-//!   assert_eq!(isize::MIN.count_digits(), i8::MIN.count_digits());
-//!   assert_eq!(isize::MAX.count_digits(), i8::MAX.count_digits());
-//!   assert_eq!(NonZeroIsize::MIN.count_digits(), NonZeroI8::MIN.count_digits());
-//!   assert_eq!(NonZeroIsize::MAX.count_digits(), NonZeroI8::MAX.count_digits());
-//!
-//!   assert_eq!(usize::MIN.count_digits(), u8::MIN.count_digits());
-//!   assert_eq!(usize::MAX.count_digits(), u8::MAX.count_digits());
-//!   assert_eq!(NonZeroUsize::MIN.count_digits(), NonZeroU8::MIN.count_digits());
-//!   assert_eq!(NonZeroUsize::MAX.count_digits(), NonZeroU8::MAX.count_digits());
-//! }
+//! assert_eq!(
+//!   0xF00D_isize.count_digits(),
+//!   NonZeroIsize::new(0xF00D).unwrap().count_digits(),
+//! );
 //! ```
+//!
+//! ##### Note
+//!
+//! Be mindful with negative signed integers in non-decimal number bases.
+//!
+//! Since negative decimal numbers are represented with a negative sign,
+//! the decimal digit count of a negative number will be equal to its
+//! positive counterpart.
+//!
+//! ```rust
+//! # use count_digits::CountDigits;
+//! assert_eq!(
+//!     0xF00D_i32.count_digits(),
+//!     0xF00D_i32.wrapping_neg().count_digits(),
+//! );
+//! ````
+//!
+//! However, a negative number using a different radix will not have the
+//! same count of digits as its positive counterpart.
+//!
+//! ```rust
+//! # use count_digits::CountDigits;
+//! assert_ne!(
+//!     0xBAD_i32.count_bits(),
+//!     0xBAD_i32.wrapping_neg().count_bits(),
+//! );
+//! assert_ne!(
+//!     0xBAD_i32.count_octal_digits(),
+//!     0xBAD_i32.wrapping_neg().count_octal_digits(),
+//! );
+//! assert_ne!(
+//!     0xBAD_i32.count_hex_digits(),
+//!     0xBAD_i32.wrapping_neg().count_hex_digits(),
+//! );
+//!
+//! for radix in 2..=16 {
+//!     match radix {
+//!         10 => assert_eq!(
+//!             0xF00D_i32.count_digits_radix(radix),
+//!             0xF00D_i32.wrapping_neg().count_digits_radix(radix),
+//!         ),
+//!         _ => assert_ne!(
+//!             0xBAD_i32.count_digits_radix(radix),
+//!             0xBAD_i32.wrapping_neg().count_digits_radix(radix),
+//!         ),
+//!     }
+//! }
+//! ````
 
 use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
 use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
 
-/// Count the decimal digits of an integer.
+/// A [no_std](https://docs.rust-embedded.org/book/intro/no-std.html) trait to count
+/// the digits of an integer in various number bases.
 pub trait CountDigits: Copy + Sized {
     /// The type of integer that should be passed in to the
     /// [count_digits_radix()](CountDigits::count_digits_radix) function.
@@ -335,6 +302,11 @@ pub trait CountDigits: Copy + Sized {
     fn count_octal_digits(self) -> u32;
 
     /// Returns the count of decimal digits in an integer.
+    ///
+    /// ###### Note
+    ///
+    /// Counts digits only: the negative sign for negative numbers is not counted.
+    ///
     /// ### Examples
     /// ```rust
     /// use count_digits::CountDigits;
