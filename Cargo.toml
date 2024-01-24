@@ -18,3 +18,6 @@ rust-version = "1.71.1"
 [dev-dependencies]
 paste = "1.0.14"
 
+[badges]
+codecov = { repository = "nordzilla/count-digits", branch = "main", service = "github" }
+
