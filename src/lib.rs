@@ -225,76 +225,126 @@ pub trait CountDigits: Copy + Sized {
 }
 
 macro_rules! impl_count_digits {
-    (signed, $type:ty) => {
-        impl CountDigits for $type {
+    (
+        primitive_type = $primitive_type:ty,
+        non_zero_type = $non_zero_type:ty,
+    ) => {
+        impl CountDigits for $primitive_type {
             #[inline(always)]
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
-                self.abs_diff(0).checked_ilog10().unwrap_or_default() + 1
+                1 + self.abs_diff(0).checked_ilog10().unwrap_or_default()
+            }
+        }
+
+        impl CountDigits for $non_zero_type {
+            #[inline(always)]
+            /// Returns the count of decimal digits in an integer.
+            fn count_digits(self) -> u32 {
+                1 + self.get().abs_diff(0).ilog10()
             }
         }
     };
-
-    (unsigned, $type:ty) => {
-        impl CountDigits for $type {
+    (
+        primitive_type = $primitive_type:ty,
+        non_zero_type = $non_zero_type:ty,
+    ) => {
+        impl CountDigits for $primitive_type {
             #[inline(always)]
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
-                self.checked_ilog10().unwrap_or_default() + 1
+                1 + self.checked_ilog10().unwrap_or_default()
+            }
+        }
+
+        impl CountDigits for $non_zero_type {
+            #[inline(always)]
+            /// Returns the count of decimal digits in an integer.
+            fn count_digits(self) -> u32 {
+                1 + self.ilog10()
             }
         }
     };
 }
 
-macro_rules! impl_nonzero_count_digits {
-    (signed, $type:ty) => {
-        impl CountDigits for $type {
-            #[inline(always)]
-            /// Returns the count of decimal digits in an integer.
-            fn count_digits(self) -> u32 {
-                self.get().abs_diff(0).ilog10() + 1
-            }
-        }
-    };
-
-    (unsigned, $type:ty) => {
-        impl CountDigits for $type {
-            #[inline(always)]
-            /// Returns the count of decimal digits in an integer.
-            fn count_digits(self) -> u32 {
-                self.ilog10() + 1
-            }
-        }
-    };
+impl_count_digits! {
+    primitive_type = i8,
+    non_zero_type = NonZeroI8,
 }
 
-impl_count_digits!(signed, i8);
-impl_count_digits!(signed, i16);
-impl_count_digits!(signed, i32);
-impl_count_digits!(signed, i64);
-impl_count_digits!(signed, i128);
-impl_count_digits!(signed, isize);
+impl_count_digits! {
+    primitive_type = i16,
+    non_zero_type = NonZeroI16,
+}
 
-impl_count_digits!(unsigned, u8);
-impl_count_digits!(unsigned, u16);
-impl_count_digits!(unsigned, u32);
-impl_count_digits!(unsigned, u64);
-impl_count_digits!(unsigned, u128);
-impl_count_digits!(unsigned, usize);
+impl_count_digits! {
+    primitive_type = i32,
+    non_zero_type = NonZeroI32,
+}
 
-impl_nonzero_count_digits!(signed, NonZeroI8);
-impl_nonzero_count_digits!(signed, NonZeroI16);
-impl_nonzero_count_digits!(signed, NonZeroI32);
-impl_nonzero_count_digits!(signed, NonZeroI64);
-impl_nonzero_count_digits!(signed, NonZeroI128);
-impl_nonzero_count_digits!(signed, NonZeroIsize);
+impl_count_digits! {
+    primitive_type = i64,
+    non_zero_type = NonZeroI64,
+}
 
-impl_nonzero_count_digits!(unsigned, NonZeroU8);
-impl_nonzero_count_digits!(unsigned, NonZeroU16);
-impl_nonzero_count_digits!(unsigned, NonZeroU32);
-impl_nonzero_count_digits!(unsigned, NonZeroU64);
-impl_nonzero_count_digits!(unsigned, NonZeroU128);
-impl_nonzero_count_digits!(unsigned, NonZeroUsize);
+impl_count_digits! {
+    primitive_type = i128,
+    non_zero_type = NonZeroI128,
+}
+
+#[cfg(target_pointer_width = "64")]
+impl_count_digits! {
+    primitive_type = isize,
+    non_zero_type = NonZeroIsize,
+}
+
+#[cfg(target_pointer_width = "32")]
+impl_count_digits! {
+    primitive_type = isize,
+    non_zero_type = NonZeroIsize,
+}
+
+#[cfg(target_pointer_width = "16")]
+impl_count_digits! {
+    primitive_type = isize,
+    non_zero_type = NonZeroIsize,
+}
+
+#[cfg(target_pointer_width = "8")]
+impl_count_digits! {
+    primitive_type = isize,
+    non_zero_type = NonZeroIsize,
+}
+
+impl_count_digits! {
+    primitive_type = u8,
+    non_zero_type = NonZeroU8,
+}
+
+impl_count_digits! {
+    primitive_type = u16,
+    non_zero_type = NonZeroU16,
+}
+
+impl_count_digits! {
+    primitive_type = u32,
+    non_zero_type = NonZeroU32,
+}
+
+impl_count_digits! {
+    primitive_type = u64,
+    non_zero_type = NonZeroU64,
+}
+
+impl_count_digits! {
+    primitive_type = u128,
+    non_zero_type = NonZeroU128,
+}
+
+impl_count_digits! {
+    primitive_type = usize,
+    non_zero_type = NonZeroUsize,
+}
 
 #[cfg(test)]
 mod count_digits {
