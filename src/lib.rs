@@ -1020,13 +1020,114 @@ mod count_digits {
         };
     }
 
-    macro_rules! min_to_max_or_one_million {
-        ($type:ty, $non_zero_type:ty) => {
+    macro_rules! lower_bound {
+        ($type:ty) => {
+            -100_000 as $type
+        };
+    }
+
+    macro_rules! upper_bound {
+        ($type:ty) => {
+            100_000 as $type
+        };
+    }
+
+    macro_rules! min_or_lower_bound {
+        (i8) => {
+            i8::MIN
+        };
+        (i16) => {
+            i16::MIN
+        };
+        (isize) => {{
+            #[cfg(any(target_pointer_width = "64", target_pointer_width = "32"))]
+            const fn min_or_lower_bound() -> isize {
+                lower_bound!(isize)
+            }
+            #[cfg(any(target_pointer_width = "16", target_pointer_width = "8"))]
+            const fn min_or_lower_bound() -> isize {
+                isize::MIN
+            }
+            min_or_lower_bound()
+        }};
+        ($type:ty) => {
+            lower_bound!($type)
+        };
+    }
+
+    macro_rules! max_or_upper_bound {
+        (i8) => {
+            i8::MAX
+        };
+        (i16) => {
+            i16::MAX
+        };
+        (u8) => {
+            u8::MAX
+        };
+        (u16) => {
+            u16::MAX
+        };
+        (isize) => {{
+            #[cfg(any(target_pointer_width = "64", target_pointer_width = "32"))]
+            const fn max_or_upper_bound() -> isize {
+                upper_bound!(isize)
+            }
+            #[cfg(any(target_pointer_width = "16", target_pointer_width = "8"))]
+            const fn max_or_upper_bound() -> isize {
+                isize::MAX
+            }
+            max_or_upper_bound()
+        }};
+        (usize) => {{
+            #[cfg(any(target_pointer_width = "64", target_pointer_width = "32"))]
+            const fn max_or_upper_bound() -> usize {
+                upper_bound!(usize)
+            }
+            #[cfg(any(target_pointer_width = "16", target_pointer_width = "8"))]
+            const fn max_or_upper_bound() -> usize {
+                isize::MAX
+            }
+            max_or_upper_bound()
+        }};
+        ($type:ty) => {
+            upper_bound!($type)
+        };
+    }
+
+    macro_rules! iteration {
+        (signed, $type:ty, $non_zero_type:ty) => {
             paste! {
                 #[test]
                 #[allow(overflowing_literals)]
-                fn [<min_to_max_or_one_million_ $type>]() {
-                    let max = if ($type::MAX as u128) < 1_000_000 { $type::MAX } else { 1_000_000 };
+                fn [<iteration_ $type>]() {
+                    let max = max_or_upper_bound!($type);
+                    let min = min_or_lower_bound!($type);
+                    for n in min..=max {
+                        assert_representations!(n);
+                    }
+                }
+
+                #[test]
+                #[allow(non_snake_case)]
+                #[allow(overflowing_literals)]
+                fn [<iteration_ $non_zero_type>]() {
+                    let max = max_or_upper_bound!($type);
+                    let min = min_or_lower_bound!($type);
+                    for n in min..=max {
+                        if n == 0 { continue; }
+                        let n = $non_zero_type::new(n).unwrap();
+                        assert_representations!(n);
+                    }
+                }
+            }
+        };
+        (unsigned, $type:ty, $non_zero_type:ty) => {
+            paste! {
+                #[test]
+                #[allow(overflowing_literals)]
+                fn [<iteration_ $type>]() {
+                    let max = max_or_upper_bound!($type);
                     for n in $type::MIN..=max {
                         assert_representations!(n);
                     }
@@ -1035,8 +1136,8 @@ mod count_digits {
                 #[test]
                 #[allow(non_snake_case)]
                 #[allow(overflowing_literals)]
-                fn [<min_to_max_or_one_million_ $non_zero_type>]() {
-                    let max = if ($type::MAX as u128) < 1_000_000 { $type::MAX } else { 1_000_000 };
+                fn [<iteration_ $non_zero_type>]() {
+                    let max = max_or_upper_bound!($type);
                     for n in $non_zero_type::MIN.get()..=max {
                         let n = $non_zero_type::new(n).unwrap();
                         assert_representations!(n);
@@ -1046,38 +1147,9 @@ mod count_digits {
         };
     }
 
-    macro_rules! min_or_negative_one_million_to_max_or_one_million {
-        ($type:ty, $non_zero_type:ty) => {
-            paste! {
-                #[test]
-                #[allow(overflowing_literals)]
-                fn [<min_or_negative_one_million_to_max_or_one_million_ $type>]() {
-                    let max = if ($type::MAX as u128) <  1_000_000 { $type::MAX } else {  1_000_000 };
-                    let min = if ($type::MIN as i128) > -1_000_000 { $type::MIN } else { -1_000_000 };
-                    for n in min..=max {
-                        assert_representations!(n);
-                    }
-                }
-
-                #[test]
-                #[allow(non_snake_case)]
-                #[allow(overflowing_literals)]
-                fn [<min_or_negative_one_million_to_max_or_one_million_ $non_zero_type>]() {
-                    let max = if ($type::MAX as u128) <  1_000_000 { $type::MAX } else {  1_000_000 };
-                    let min = if ($type::MIN as i128) > -1_000_000 { $type::MIN } else { -1_000_000 };
-                    for n in min..=max {
-                        if n == 0 { continue; }
-                        let n = $non_zero_type::new(n).unwrap();
-                        assert_representations!(n);
-                    }
-                }
-            }
-        };
-    }
-
     macro_rules! add_test {
-        ($name:ident, $type:ty, $non_zero_type:ty) => {
-            $name!($type, $non_zero_type);
+        ($name:ident, $($args:tt)+) => {
+            $name!($($args)*);
         };
     }
 
@@ -1095,41 +1167,17 @@ mod count_digits {
     add_test!(min_and_max, u128, NonZeroU128);
     add_test!(min_and_max, usize, NonZeroUsize);
 
-    add_test!(min_to_max_or_one_million, u8, NonZeroU8);
-    add_test!(min_to_max_or_one_million, u16, NonZeroU16);
-    add_test!(min_to_max_or_one_million, u32, NonZeroU32);
-    add_test!(min_to_max_or_one_million, u64, NonZeroU64);
-    add_test!(min_to_max_or_one_million, u128, NonZeroU128);
-    add_test!(min_to_max_or_one_million, usize, NonZeroUsize);
+    add_test!(iteration, signed, i8, NonZeroI8);
+    add_test!(iteration, signed, i16, NonZeroI16);
+    add_test!(iteration, signed, i32, NonZeroI32);
+    add_test!(iteration, signed, i64, NonZeroI64);
+    add_test!(iteration, signed, i128, NonZeroI128);
+    add_test!(iteration, signed, isize, NonZeroIsize);
 
-    add_test!(
-        min_or_negative_one_million_to_max_or_one_million,
-        i8,
-        NonZeroI8
-    );
-    add_test!(
-        min_or_negative_one_million_to_max_or_one_million,
-        i16,
-        NonZeroI16
-    );
-    add_test!(
-        min_or_negative_one_million_to_max_or_one_million,
-        i32,
-        NonZeroI32
-    );
-    add_test!(
-        min_or_negative_one_million_to_max_or_one_million,
-        i64,
-        NonZeroI64
-    );
-    add_test!(
-        min_or_negative_one_million_to_max_or_one_million,
-        i128,
-        NonZeroI128
-    );
-    add_test!(
-        min_or_negative_one_million_to_max_or_one_million,
-        isize,
-        NonZeroIsize
-    );
+    add_test!(iteration, unsigned, u8, NonZeroU8);
+    add_test!(iteration, unsigned, u16, NonZeroU16);
+    add_test!(iteration, unsigned, u32, NonZeroU32);
+    add_test!(iteration, unsigned, u64, NonZeroU64);
+    add_test!(iteration, unsigned, u128, NonZeroU128);
+    add_test!(iteration, unsigned, usize, NonZeroUsize);
 }
