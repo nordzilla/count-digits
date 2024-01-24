@@ -2,14 +2,12 @@
 
 # count-digits
 
-## CountDigits
-
 A [no_std](https://docs.rust-embedded.org/book/intro/no-std.html) trait to count
-the digits of an integer in various number bases.
+the digits of integer types in various number bases.
 
 Compatible with all primitive integer types and all non-zero integer types.
 
-##### Examples
+#### Examples
 ```rust
 use count_digits::CountDigits;
 use core::num::NonZeroIsize;
@@ -32,7 +30,7 @@ assert_eq!(
 );
 ```
 
-###### Note
+##### Note
 
 Be mindful with negative signed integers in non-decimal number bases.
 
