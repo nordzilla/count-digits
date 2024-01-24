@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![allow(clippy::zero_prefixed_literal)]
 //! # CountDigits
 //!
@@ -897,113 +897,122 @@ mod count_digits {
     use super::*;
     use paste::paste;
 
-    trait MinAndMax {
-        const MAX_VALUE_DIGITS: u32;
-        const MAX_VALUE: Self;
-
-        const MIN_VALUE_DIGITS: u32;
-        const MIN_VALUE: Self;
-    }
-
-    macro_rules! impl_min_and_max {
-        ($type:ty, $min_digits:expr, $max_digits:expr) => {
-            impl MinAndMax for $type {
-                const MAX_VALUE_DIGITS: u32 = $max_digits;
-                const MAX_VALUE: Self = Self::MAX;
-
-                const MIN_VALUE_DIGITS: u32 = $min_digits;
-                const MIN_VALUE: Self = Self::MIN;
-            }
+    macro_rules! binary_string_count {
+        ($n:expr) => {
+            format!("{:b}", $n).len() as u32
         };
     }
 
-    impl_min_and_max!(i8, 3, 3);
-    impl_min_and_max!(NonZeroI8, 3, 3);
+    macro_rules! octal_string_count {
+        ($n:expr) => {
+            format!("{:o}", $n).len() as u32
+        };
+    }
 
-    impl_min_and_max!(i16, 5, 5);
-    impl_min_and_max!(NonZeroI16, 5, 5);
+    macro_rules! decimal_string_count {
+        ($n:expr) => {{
+            let string = format!("{}", $n);
+            string.strip_prefix('-').unwrap_or(&string).len() as u32
+        }};
+    }
 
-    impl_min_and_max!(i32, 10, 10);
-    impl_min_and_max!(NonZeroI32, 10, 10);
+    macro_rules! hex_string_count {
+        ($n:expr) => {
+            format!("{:X}", $n).len() as u32
+        };
+    }
 
-    impl_min_and_max!(i64, 19, 19);
-    impl_min_and_max!(NonZeroI64, 19, 19);
+    macro_rules! assert_min_and_max {
+        ($type:ty) => {
+            assert_eq!(
+                <$type>::MIN.count_bits(),
+                binary_string_count!(<$type>::MIN)
+            );
+            assert_eq!(
+                <$type>::MIN.count_digits_radix(2),
+                binary_string_count!(<$type>::MIN)
+            );
 
-    impl_min_and_max!(i128, 39, 39);
-    impl_min_and_max!(NonZeroI128, 39, 39);
+            assert_eq!(
+                <$type>::MAX.count_bits(),
+                binary_string_count!(<$type>::MAX)
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(2),
+                binary_string_count!(<$type>::MAX)
+            );
 
-    impl_min_and_max!(u8, 1, 3);
-    impl_min_and_max!(NonZeroU8, 1, 3);
+            assert_eq!(
+                <$type>::MIN.count_octal_digits(),
+                octal_string_count!(<$type>::MIN),
+            );
+            assert_eq!(
+                <$type>::MIN.count_digits_radix(8),
+                octal_string_count!(<$type>::MIN),
+            );
 
-    impl_min_and_max!(u16, 1, 5);
-    impl_min_and_max!(NonZeroU16, 1, 5);
+            assert_eq!(
+                <$type>::MAX.count_octal_digits(),
+                octal_string_count!(<$type>::MAX),
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(8),
+                octal_string_count!(<$type>::MAX),
+            );
 
-    impl_min_and_max!(u32, 1, 10);
-    impl_min_and_max!(NonZeroU32, 1, 10);
+            assert_eq!(
+                <$type>::MIN.count_digits(),
+                decimal_string_count!(<$type>::MIN)
+            );
+            assert_eq!(
+                <$type>::MIN.count_digits_radix(10),
+                decimal_string_count!(<$type>::MIN),
+            );
 
-    impl_min_and_max!(u64, 1, 20);
-    impl_min_and_max!(NonZeroU64, 1, 20);
+            assert_eq!(
+                <$type>::MAX.count_digits(),
+                decimal_string_count!(<$type>::MAX)
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(10),
+                decimal_string_count!(<$type>::MAX),
+            );
 
-    impl_min_and_max!(u128, 1, 39);
-    impl_min_and_max!(NonZeroU128, 1, 39);
+            assert_eq!(
+                <$type>::MIN.count_hex_digits(),
+                hex_string_count!(<$type>::MIN),
+            );
+            assert_eq!(
+                <$type>::MIN.count_digits_radix(16),
+                hex_string_count!(<$type>::MIN),
+            );
 
-    #[cfg(target_pointer_width = "64")]
-    impl_min_and_max!(isize, i64::MIN_VALUE_DIGITS, i64::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "64")]
-    impl_min_and_max!(NonZeroIsize, i64::MIN_VALUE_DIGITS, i64::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "32")]
-    impl_min_and_max!(isize, i32::MIN_VALUE_DIGITS, i32::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "32")]
-    impl_min_and_max!(NonZeroIsize, i32::MIN_VALUE_DIGITS, i32::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "16")]
-    impl_min_and_max!(isize, i16::MIN_VALUE_DIGITS, i16::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "16")]
-    impl_min_and_max!(NonZeroIsize, i16::MIN_VALUE_DIGITS, i16::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "8")]
-    impl_min_and_max!(isize, i8::MIN_VALUE_DIGITS, i8::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "8")]
-    impl_min_and_max!(NonZeroIsize, i8::MIN_VALUE_DIGITS, i8::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "64")]
-    impl_min_and_max!(usize, u64::MIN_VALUE_DIGITS, u64::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "64")]
-    impl_min_and_max!(NonZeroUsize, u64::MIN_VALUE_DIGITS, u64::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "32")]
-    impl_min_and_max!(usize, u32::MIN_VALUE_DIGITS, u32::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "32")]
-    impl_min_and_max!(NonZeroUsize, u32::MIN_VALUE_DIGITS, u32::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "16")]
-    impl_min_and_max!(usize, u16::MIN_VALUE_DIGITS, u16::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "16")]
-    impl_min_and_max!(NonZeroUsize, u16::MIN_VALUE_DIGITS, u16::MAX_VALUE_DIGITS);
-
-    #[cfg(target_pointer_width = "8")]
-    impl_min_and_max!(usize, u8::MIN_VALUE_DIGITS, u8::MAX_VALUE_DIGITS);
-    #[cfg(target_pointer_width = "8")]
-    impl_min_and_max!(NonZeroUsize, u8::MIN_VALUE_DIGITS, u8::MAX_VALUE_DIGITS);
+            assert_eq!(
+                <$type>::MAX.count_hex_digits(),
+                hex_string_count!(<$type>::MAX),
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(16),
+                hex_string_count!(<$type>::MAX),
+            );
+        };
+    }
 
     macro_rules! min_and_max {
         ($type:ty, $non_zero_type:ty) => {
             paste! {
                 #[test]
                 fn [<min_and_max_ $type>]() {
-                    assert_eq!($type::MIN_VALUE.count_digits(), $type::MIN_VALUE_DIGITS,);
-                    assert_eq!($type::MAX_VALUE.count_digits(), $type::MAX_VALUE_DIGITS,);
+                    assert_min_and_max!($type);
                 }
 
                 #[test]
                 #[allow(non_snake_case)]
                 fn [<min_and_max_ $non_zero_type>]() {
-                    assert_eq!($non_zero_type::MIN_VALUE.count_digits(), $non_zero_type::MIN_VALUE_DIGITS,);
-                    assert_eq!($non_zero_type::MAX_VALUE.count_digits(), $non_zero_type::MAX_VALUE_DIGITS,);
+                    assert_min_and_max!($type);
                 }
             }
-        }
+        };
     }
 
     macro_rules! min_to_max_or_one_million {
@@ -1107,19 +1116,19 @@ mod count_digits {
         };
     }
 
-    add_test!(min_and_max, u8, NonZeroU8);
-    add_test!(min_and_max, u16, NonZeroU16);
-    add_test!(min_and_max, u32, NonZeroU32);
-    add_test!(min_and_max, u64, NonZeroU64);
-    add_test!(min_and_max, u128, NonZeroU128);
-    add_test!(min_and_max, usize, NonZeroUsize);
-
     add_test!(min_and_max, i8, NonZeroI8);
     add_test!(min_and_max, i16, NonZeroI16);
     add_test!(min_and_max, i32, NonZeroI32);
     add_test!(min_and_max, i64, NonZeroI64);
     add_test!(min_and_max, i128, NonZeroI128);
     add_test!(min_and_max, isize, NonZeroIsize);
+
+    add_test!(min_and_max, u8, NonZeroU8);
+    add_test!(min_and_max, u16, NonZeroU16);
+    add_test!(min_and_max, u32, NonZeroU32);
+    add_test!(min_and_max, u64, NonZeroU64);
+    add_test!(min_and_max, u128, NonZeroU128);
+    add_test!(min_and_max, usize, NonZeroUsize);
 
     add_test!(min_to_max_or_one_million, u8, NonZeroU8);
     add_test!(min_to_max_or_one_million, u16, NonZeroU16);
