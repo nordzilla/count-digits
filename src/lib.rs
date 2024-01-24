@@ -116,6 +116,112 @@ use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZ
 
 /// Count the decimal digits of an integer.
 pub trait CountDigits: Copy + Sized {
+    /// Returns the count of bits in an integer starting with the first non-zero bit.
+    /// ```rust
+    /// use count_digits::CountDigits;
+    /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
+    /// # use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+    ///
+    /// assert_eq!(008, i8::MIN.count_bits());
+    /// assert_eq!(007, i8::MAX.count_bits());
+    /// assert_eq!(008, NonZeroI8::MIN.count_bits());
+    /// assert_eq!(007, NonZeroI8::MAX.count_bits());
+    ///
+    /// assert_eq!(001, u8::MIN.count_bits());
+    /// assert_eq!(008, u8::MAX.count_bits());
+    /// assert_eq!(001, NonZeroU8::MIN.count_bits());
+    /// assert_eq!(008, NonZeroU8::MAX.count_bits());
+    ///
+    /// assert_eq!(016, i16::MIN.count_bits());
+    /// assert_eq!(015, i16::MAX.count_bits());
+    /// assert_eq!(016, NonZeroI16::MIN.count_bits());
+    /// assert_eq!(015, NonZeroI16::MAX.count_bits());
+    ///
+    /// assert_eq!(001, u16::MIN.count_bits());
+    /// assert_eq!(016, u16::MAX.count_bits());
+    /// assert_eq!(001, NonZeroU16::MIN.count_bits());
+    /// assert_eq!(016, NonZeroU16::MAX.count_bits());
+    ///
+    /// assert_eq!(032, i32::MIN.count_bits());
+    /// assert_eq!(031, i32::MAX.count_bits());
+    /// assert_eq!(032, NonZeroI32::MIN.count_bits());
+    /// assert_eq!(031, NonZeroI32::MAX.count_bits());
+    ///
+    /// assert_eq!(001, u32::MIN.count_bits());
+    /// assert_eq!(032, u32::MAX.count_bits());
+    /// assert_eq!(001, NonZeroU32::MIN.count_bits());
+    /// assert_eq!(032, NonZeroU32::MAX.count_bits());
+    ///
+    /// assert_eq!(064, i64::MIN.count_bits());
+    /// assert_eq!(063, i64::MAX.count_bits());
+    /// assert_eq!(064, NonZeroI64::MIN.count_bits());
+    /// assert_eq!(063, NonZeroI64::MAX.count_bits());
+    ///
+    /// assert_eq!(001, u64::MIN.count_bits());
+    /// assert_eq!(064, u64::MAX.count_bits());
+    /// assert_eq!(001, NonZeroU64::MIN.count_bits());
+    /// assert_eq!(064, NonZeroU64::MAX.count_bits());
+    ///
+    /// assert_eq!(128, i128::MIN.count_bits());
+    /// assert_eq!(127, i128::MAX.count_bits());
+    /// assert_eq!(128, NonZeroI128::MIN.count_bits());
+    /// assert_eq!(127, NonZeroI128::MAX.count_bits());
+    ///
+    /// assert_eq!(001, u128::MIN.count_bits());
+    /// assert_eq!(128, u128::MAX.count_bits());
+    /// assert_eq!(001, NonZeroU128::MIN.count_bits());
+    /// assert_eq!(128, NonZeroU128::MAX.count_bits());
+    ///
+    /// #[cfg(target_pointer_width = "64")] {
+    ///   assert_eq!(isize::MIN.count_bits(), i64::MIN.count_bits());
+    ///   assert_eq!(isize::MAX.count_bits(), i64::MAX.count_bits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_bits(), NonZeroI64::MIN.count_bits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_bits(), NonZeroI64::MAX.count_bits());
+    ///
+    ///   assert_eq!(usize::MIN.count_bits(), u64::MIN.count_bits());
+    ///   assert_eq!(usize::MAX.count_bits(), u64::MAX.count_bits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_bits(), NonZeroU64::MIN.count_bits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_bits(), NonZeroU64::MAX.count_bits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "32")] {
+    ///   assert_eq!(isize::MIN.count_bits(), i32::MIN.count_bits());
+    ///   assert_eq!(isize::MAX.count_bits(), i32::MAX.count_bits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_bits(), NonZeroI32::MIN.count_bits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_bits(), NonZeroI32::MAX.count_bits());
+    ///
+    ///   assert_eq!(usize::MIN.count_bits(), u32::MIN.count_bits());
+    ///   assert_eq!(usize::MAX.count_bits(), u32::MAX.count_bits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_bits(), NonZeroU32::MIN.count_bits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_bits(), NonZeroU32::MAX.count_bits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "16")] {
+    ///   assert_eq!(isize::MIN.count_bits(), i16::MIN.count_bits());
+    ///   assert_eq!(isize::MAX.count_bits(), i16::MAX.count_bits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_bits(), NonZeroI16::MIN.count_bits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_bits(), NonZeroI16::MAX.count_bits());
+    ///
+    ///   assert_eq!(usize::MIN.count_bits(), u16::MIN.count_bits());
+    ///   assert_eq!(usize::MAX.count_bits(), u16::MAX.count_bits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_bits(), NonZeroU16::MIN.count_bits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_bits(), NonZeroU16::MAX.count_bits());
+    /// }
+    ///
+    /// #[cfg(target_pointer_width = "8")] {
+    ///   assert_eq!(isize::MIN.count_bits(), i8::MIN.count_bits());
+    ///   assert_eq!(isize::MAX.count_bits(), i8::MAX.count_bits());
+    ///   assert_eq!(NonZeroIsize::MIN.count_bits(), NonZeroI8::MIN.count_bits());
+    ///   assert_eq!(NonZeroIsize::MAX.count_bits(), NonZeroI8::MAX.count_bits());
+    ///
+    ///   assert_eq!(usize::MIN.count_bits(), u8::MIN.count_bits());
+    ///   assert_eq!(usize::MAX.count_bits(), u8::MAX.count_bits());
+    ///   assert_eq!(NonZeroUsize::MIN.count_bits(), NonZeroU8::MIN.count_bits());
+    ///   assert_eq!(NonZeroUsize::MAX.count_bits(), NonZeroU8::MAX.count_bits());
+    /// }
+    /// ```
+    fn count_bits(self) -> u32;
+
     /// Returns the count of decimal digits in an integer.
     /// ### Examples
     /// ```rust
@@ -228,8 +334,19 @@ macro_rules! impl_count_digits {
     (
         primitive_type = $primitive_type:ty,
         non_zero_type = $non_zero_type:ty,
+        min_value_bits = $min_value_bits:expr,
     ) => {
         impl CountDigits for $primitive_type {
+            #[inline(always)]
+            /// Returns the count of bits in an integer starting with the first non-zero bit.
+            fn count_bits(self) -> u32 {
+                if self >= 0 {
+                    1 + self.abs_diff(0).checked_ilog2().unwrap_or_default()
+                } else {
+                    $min_value_bits
+                }
+            }
+
             #[inline(always)]
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
@@ -238,6 +355,16 @@ macro_rules! impl_count_digits {
         }
 
         impl CountDigits for $non_zero_type {
+            #[inline(always)]
+            /// Returns the count of bits in an integer starting with the first non-zero bit.
+            fn count_bits(self) -> u32 {
+                if self.is_positive() {
+                    1 + self.get().abs_diff(0).ilog2()
+                } else {
+                    $min_value_bits
+                }
+            }
+
             #[inline(always)]
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
@@ -251,6 +378,12 @@ macro_rules! impl_count_digits {
     ) => {
         impl CountDigits for $primitive_type {
             #[inline(always)]
+            /// Returns the count of bits in an integer starting with the first non-zero bit.
+            fn count_bits(self) -> u32 {
+                1 + self.checked_ilog2().unwrap_or_default()
+            }
+
+            #[inline(always)]
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
                 1 + self.checked_ilog10().unwrap_or_default()
@@ -258,6 +391,12 @@ macro_rules! impl_count_digits {
         }
 
         impl CountDigits for $non_zero_type {
+            #[inline(always)]
+            /// Returns the count of bits in an integer starting with the first non-zero bit.
+            fn count_bits(self) -> u32 {
+                1 + self.ilog2()
+            }
+
             #[inline(always)]
             /// Returns the count of decimal digits in an integer.
             fn count_digits(self) -> u32 {
@@ -270,50 +409,59 @@ macro_rules! impl_count_digits {
 impl_count_digits! {
     primitive_type = i8,
     non_zero_type = NonZeroI8,
+    min_value_bits = 8,
 }
 
 impl_count_digits! {
     primitive_type = i16,
     non_zero_type = NonZeroI16,
+    min_value_bits = 16,
 }
 
 impl_count_digits! {
     primitive_type = i32,
     non_zero_type = NonZeroI32,
+    min_value_bits = 32,
 }
 
 impl_count_digits! {
     primitive_type = i64,
     non_zero_type = NonZeroI64,
+    min_value_bits = 64,
 }
 
 impl_count_digits! {
     primitive_type = i128,
     non_zero_type = NonZeroI128,
+    min_value_bits = 128,
 }
 
 #[cfg(target_pointer_width = "64")]
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    min_value_bits = 64,
 }
 
 #[cfg(target_pointer_width = "32")]
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    min_value_bits = 32,
 }
 
 #[cfg(target_pointer_width = "16")]
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    min_value_bits = 16,
 }
 
 #[cfg(target_pointer_width = "8")]
 impl_count_digits! {
     primitive_type = isize,
     non_zero_type = NonZeroIsize,
+    min_value_bits = 8,
 }
 
 impl_count_digits! {
