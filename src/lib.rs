@@ -1147,6 +1147,79 @@ mod count_digits {
         };
     }
 
+    /// Returns an iterator over the pairs boundaries (n, m) for a given radix
+    /// where n is the largest number of its digit-size group and m is the smallest
+    /// number of its digit-size group.
+    ///
+    /// Using radix 2 would give (001, 002) -> (003, 004) -> (007, 008) -> etc.
+    /// Using radix 8 would give (007, 008) -> (063, 064) -> (511, 512) -> etc.
+    macro_rules! radix_boundaries {
+        ($type:ty, $radix:expr) => {
+            std::iter::successors(Some(1 as $type), move |n| n.checked_mul($radix))
+                .skip(1)
+                .map(|n| (n - 1, n))
+        };
+    }
+
+    /// Returns an iterator of increasing pairs staring with (1, 2).
+    /// e.g. (1, 2) -> (2, 3) -> (3, 4) -> (4, 5) -> (5, 6) -> etc.
+    pub fn increasing_pairs() -> impl Iterator<Item = (u32, u32)> {
+        std::iter::successors(Some(1u32), move |n| n.checked_add(1))
+            .zip(std::iter::successors(Some(2u32), move |n| n.checked_add(1)))
+    }
+
+    macro_rules! boundaries_for_radix {
+        ($type:ty, $non_zero_type:ty) => {
+            boundaries_for_radix!($type, $non_zero_type, 2);
+            boundaries_for_radix!($type, $non_zero_type, 3);
+            boundaries_for_radix!($type, $non_zero_type, 4);
+            boundaries_for_radix!($type, $non_zero_type, 5);
+            boundaries_for_radix!($type, $non_zero_type, 6);
+            boundaries_for_radix!($type, $non_zero_type, 7);
+            boundaries_for_radix!($type, $non_zero_type, 8);
+            boundaries_for_radix!($type, $non_zero_type, 9);
+            boundaries_for_radix!($type, $non_zero_type, 10);
+            boundaries_for_radix!($type, $non_zero_type, 11);
+            boundaries_for_radix!($type, $non_zero_type, 12);
+            boundaries_for_radix!($type, $non_zero_type, 13);
+            boundaries_for_radix!($type, $non_zero_type, 14);
+            boundaries_for_radix!($type, $non_zero_type, 15);
+            boundaries_for_radix!($type, $non_zero_type, 16);
+            boundaries_for_radix!($type, $non_zero_type, 17);
+            boundaries_for_radix!($type, $non_zero_type, 18);
+            boundaries_for_radix!($type, $non_zero_type, 19);
+            boundaries_for_radix!($type, $non_zero_type, 20);
+        };
+        ($type:ty, $non_zero_type:ty, $radix:expr) => {
+            paste! {
+                #[test]
+                fn [<boundaries_for_radix_ $radix _ $type>]() {
+                    assert!(
+                        radix_boundaries!($type, $radix)
+                            .map(|(n, m)| (n.count_digits_radix($radix), m.count_digits_radix($radix)))
+                            .zip(increasing_pairs())
+                            .all(|((lhs_actual, rhs_actual), (lhs_expected, rhs_expected))| {
+                                lhs_expected == lhs_actual && rhs_expected == rhs_actual
+                            })
+                    )
+                }
+                #[test]
+                #[allow(non_snake_case)]
+                fn [<boundaries_for_radix_ $radix _ $non_zero_type>]() {
+                    assert!(
+                        radix_boundaries!($type, $radix)
+                            .map(|(n, m)| (<$non_zero_type>::new(n).unwrap(), <$non_zero_type>::new(m).unwrap()))
+                            .map(|(n, m)| (n.count_digits_radix($radix), m.count_digits_radix($radix)))
+                            .zip(increasing_pairs())
+                            .all(|((lhs_actual, rhs_actual), (lhs_expected, rhs_expected))| {
+                                lhs_expected == lhs_actual && rhs_expected == rhs_actual
+                            })
+                    )
+                }
+            }
+        };
+    }
+
     macro_rules! add_test {
         ($name:ident, $($args:tt)+) => {
             $name!($($args)*);
@@ -1180,4 +1253,18 @@ mod count_digits {
     add_test!(iteration, unsigned, u64, NonZeroU64);
     add_test!(iteration, unsigned, u128, NonZeroU128);
     add_test!(iteration, unsigned, usize, NonZeroUsize);
+
+    add_test!(boundaries_for_radix, i8, NonZeroI8);
+    add_test!(boundaries_for_radix, i16, NonZeroI16);
+    add_test!(boundaries_for_radix, i32, NonZeroI32);
+    add_test!(boundaries_for_radix, i64, NonZeroI64);
+    add_test!(boundaries_for_radix, i128, NonZeroI128);
+    add_test!(boundaries_for_radix, isize, NonZeroIsize);
+
+    add_test!(boundaries_for_radix, u8, NonZeroU8);
+    add_test!(boundaries_for_radix, u16, NonZeroU16);
+    add_test!(boundaries_for_radix, u32, NonZeroU32);
+    add_test!(boundaries_for_radix, u64, NonZeroU64);
+    add_test!(boundaries_for_radix, u128, NonZeroU128);
+    add_test!(boundaries_for_radix, usize, NonZeroUsize);
 }
