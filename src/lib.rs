@@ -1003,23 +1003,6 @@ mod count_digits {
         };
     }
 
-    macro_rules! min_and_max {
-        ($type:ty, $non_zero_type:ty) => {
-            paste! {
-                #[test]
-                fn [<min_and_max_ $type>]() {
-                    assert_min_and_max!($type);
-                }
-
-                #[test]
-                #[allow(non_snake_case)]
-                fn [<min_and_max_ $non_zero_type>]() {
-                    assert_min_and_max!($type);
-                }
-            }
-        };
-    }
-
     macro_rules! lower_bound {
         ($type:ty) => {
             -100_000 as $type
@@ -1095,58 +1078,6 @@ mod count_digits {
         };
     }
 
-    macro_rules! iteration {
-        (signed, $type:ty, $non_zero_type:ty) => {
-            paste! {
-                #[test]
-                #[allow(overflowing_literals)]
-                fn [<iteration_ $type>]() {
-                    let max = max_or_upper_bound!($type);
-                    let min = min_or_lower_bound!($type);
-                    for n in min..=max {
-                        assert_representations!(n);
-                    }
-                }
-
-                #[test]
-                #[allow(non_snake_case)]
-                #[allow(overflowing_literals)]
-                fn [<iteration_ $non_zero_type>]() {
-                    let max = max_or_upper_bound!($type);
-                    let min = min_or_lower_bound!($type);
-                    for n in min..=max {
-                        if n == 0 { continue; }
-                        let n = $non_zero_type::new(n).unwrap();
-                        assert_representations!(n);
-                    }
-                }
-            }
-        };
-        (unsigned, $type:ty, $non_zero_type:ty) => {
-            paste! {
-                #[test]
-                #[allow(overflowing_literals)]
-                fn [<iteration_ $type>]() {
-                    let max = max_or_upper_bound!($type);
-                    for n in $type::MIN..=max {
-                        assert_representations!(n);
-                    }
-                }
-
-                #[test]
-                #[allow(non_snake_case)]
-                #[allow(overflowing_literals)]
-                fn [<iteration_ $non_zero_type>]() {
-                    let max = max_or_upper_bound!($type);
-                    for n in $non_zero_type::MIN.get()..=max {
-                        let n = $non_zero_type::new(n).unwrap();
-                        assert_representations!(n);
-                    }
-                }
-            }
-        };
-    }
-
     /// Returns an iterator over the pairs boundaries (n, m) for a given radix
     /// where n is the largest number of its digit-size group and m is the smallest
     /// number of its digit-size group.
@@ -1166,6 +1097,75 @@ mod count_digits {
     pub fn increasing_pairs() -> impl Iterator<Item = (u32, u32)> {
         std::iter::successors(Some(1u32), move |n| n.checked_add(1))
             .zip(std::iter::successors(Some(2u32), move |n| n.checked_add(1)))
+    }
+
+    macro_rules! min_and_max {
+        ($type:ty, $non_zero_type:ty) => {
+            paste! {
+                #[test]
+                fn [<$type _min_and_max>]() {
+                    assert_min_and_max!($type);
+                }
+
+                #[test]
+                #[allow(non_snake_case)]
+                fn [<$non_zero_type _min_and_max>]() {
+                    assert_min_and_max!($type);
+                }
+            }
+        };
+    }
+
+    macro_rules! iteration {
+        (signed, $type:ty, $non_zero_type:ty) => {
+            paste! {
+                #[test]
+                #[allow(overflowing_literals)]
+                fn [<$type _iteration>]() {
+                    let max = max_or_upper_bound!($type);
+                    let min = min_or_lower_bound!($type);
+                    for n in min..=max {
+                        assert_representations!(n);
+                    }
+                }
+
+                #[test]
+                #[allow(non_snake_case)]
+                #[allow(overflowing_literals)]
+                fn [<$non_zero_type _iteration>]() {
+                    let max = max_or_upper_bound!($type);
+                    let min = min_or_lower_bound!($type);
+                    for n in min..=max {
+                        if n == 0 { continue; }
+                        let n = $non_zero_type::new(n).unwrap();
+                        assert_representations!(n);
+                    }
+                }
+            }
+        };
+        (unsigned, $type:ty, $non_zero_type:ty) => {
+            paste! {
+                #[test]
+                #[allow(overflowing_literals)]
+                fn [<$type _iteration>]() {
+                    let max = max_or_upper_bound!($type);
+                    for n in $type::MIN..=max {
+                        assert_representations!(n);
+                    }
+                }
+
+                #[test]
+                #[allow(non_snake_case)]
+                #[allow(overflowing_literals)]
+                fn [<$non_zero_type _iteration>]() {
+                    let max = max_or_upper_bound!($type);
+                    for n in $non_zero_type::MIN.get()..=max {
+                        let n = $non_zero_type::new(n).unwrap();
+                        assert_representations!(n);
+                    }
+                }
+            }
+        };
     }
 
     macro_rules! boundaries_for_radix {
@@ -1193,7 +1193,7 @@ mod count_digits {
         ($type:ty, $non_zero_type:ty, $radix:expr) => {
             paste! {
                 #[test]
-                fn [<boundaries_for_radix_ $radix _ $type>]() {
+                fn [<$type _boundaries_for_radix_ $radix>]() {
                     assert!(
                         radix_boundaries!($type, $radix)
                             .map(|(n, m)| (n.count_digits_radix($radix), m.count_digits_radix($radix)))
@@ -1205,7 +1205,7 @@ mod count_digits {
                 }
                 #[test]
                 #[allow(non_snake_case)]
-                fn [<boundaries_for_radix_ $radix _ $non_zero_type>]() {
+                fn [<$non_zero_type _boundaries_for_radix_ $radix>]() {
                     assert!(
                         radix_boundaries!($type, $radix)
                             .map(|(n, m)| (<$non_zero_type>::new(n).unwrap(), <$non_zero_type>::new(m).unwrap()))
