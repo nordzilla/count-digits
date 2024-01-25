@@ -19,7 +19,7 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose -- --test-threads=1
     - name: Install cargo-llvm-cov
       run: cargo install cargo-llvm-cov
     - name: Generate code coverage
