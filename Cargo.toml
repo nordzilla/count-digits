@@ -12,7 +12,12 @@ edition = "2021"
 rust-version = "1.71.1"
 
 [dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
 paste = "1.0.14"
+
+[[bench]]
+name = "benchmark"
+harness = false
 
 [badges]
 codecov = { repository = "nordzilla/count-digits", branch = "main", service = "github" }
