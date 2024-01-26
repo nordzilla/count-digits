@@ -43,9 +43,9 @@ assert_eq!(5, 12345_i32.wrapping_neg().count_digits_radix(10));
 > Negative numbers counted in base-10 are counted differently than
 > negative numbers counted in other number bases.
 
-Since negative, base-10 numbers are represented with a negative sign,
-the digit count of a positive, base-10 number will be equal to the count
-of its negated value.
+Since negative numbers represented in base-10 are displayed with a negative sign,
+the base-10 digit count of a positive number will be equal to the base-10 digit count
+of the number's negated value.
 
 ```rust
 assert_eq!(
@@ -55,7 +55,7 @@ assert_eq!(
 ````
 
 However, the digit counts of negative numbers represented in other bases reflect the
-[twos-complement representation](https://en.wikipedia.org/wiki/Two%27s_complement),
+[twos-complement](https://en.wikipedia.org/wiki/Two%27s_complement) representation,
 and the digit count of a positive number will _not_ be the same as the count
 of its negated value.
 
@@ -87,7 +87,7 @@ for radix in 2..=16 {
 }
 ````
 
-These counts are consistent with the representations of Rust's display format.
+This behavior is consistent with Rust's display format.
 ```rust
 assert_eq!(1, format!("{:b}",  1_i8).chars().count());
 assert_eq!(1, format!("{:o}",  1_i8).chars().count());
