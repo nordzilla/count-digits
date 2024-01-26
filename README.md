@@ -49,8 +49,8 @@ of the number's negated value.
 
 ```rust
 assert_eq!(
-    0xF00D_i32.count_digits(),
-    0xF00D_i32.wrapping_neg().count_digits(),
+    867_5309_i32.count_digits(),
+    867_5309_i32.wrapping_neg().count_digits(),
 );
 ````
 
