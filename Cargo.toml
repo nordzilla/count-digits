@@ -1,11 +1,11 @@
 [package]
 name = "count-digits"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Erik Nordin <nordzillacode@gmail.com>"]
 description = "A no-std trait to count the digits of integer types in various number bases."
 homepage = "https://github.com/nordzilla/count-digits"
 repository = "https://github.com/nordzilla/count-digits"
-keywords = ["decimal", "digit", "count", "integer", "trait"]
+keywords = ["count", "digits", "integer", "trait", "length"]
 categories = [ "algorithms", "mathematics", "no-std" ]
 license = "MIT"
 edition = "2021"
