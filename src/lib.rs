@@ -1081,22 +1081,41 @@ mod count_digits {
     /// Returns an iterator over the pairs boundaries (n, m) for a given radix
     /// where n is the largest number of its digit-size group and m is the smallest
     /// number of its digit-size group.
-    ///
-    /// Using radix 2 would give (001, 002) -> (003, 004) -> (007, 008) -> etc.
-    /// Using radix 8 would give (007, 008) -> (063, 064) -> (511, 512) -> etc.
     macro_rules! radix_boundaries {
         ($type:ty, $radix:expr) => {
-            std::iter::successors(Some(1 as $type), move |n| n.checked_mul($radix))
-                .skip(1)
+            std::iter::successors(Some($radix as $type), move |n| n.checked_mul($radix))
                 .map(|n| (n - 1, n))
         };
     }
 
+    #[test]
+    fn helper_radix_boundaries() {
+        assert_eq!(
+            radix_boundaries!(i8, 2).collect::<Vec<_>>(),
+            [(1, 2), (3, 4), (7, 8), (15, 16), (31, 32), (63, 64)],
+        );
+        assert_eq!(
+            radix_boundaries!(i16, 10).collect::<Vec<_>>(),
+            [(9, 10), (99, 100), (999, 1000), (9999, 10000)],
+        );
+        assert_eq!(
+            radix_boundaries!(i16, 16).collect::<Vec<_>>(),
+            [(0xF, 0x10), (0xFF, 0x100), (0xFFF, 0x1000)],
+        );
+    }
+
     /// Returns an iterator of increasing pairs staring with (1, 2).
-    /// e.g. (1, 2) -> (2, 3) -> (3, 4) -> (4, 5) -> (5, 6) -> etc.
-    pub fn increasing_pairs() -> impl Iterator<Item = (u32, u32)> {
+    fn increasing_pairs() -> impl Iterator<Item = (u32, u32)> {
         std::iter::successors(Some(1u32), move |n| n.checked_add(1))
             .zip(std::iter::successors(Some(2u32), move |n| n.checked_add(1)))
+    }
+
+    #[test]
+    fn helper_increasing_pairs() {
+        assert_eq!(
+            increasing_pairs().take(5).collect::<Vec<_>>(),
+            [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)],
+        );
     }
 
     macro_rules! min_and_max {
