@@ -51,9 +51,9 @@
 //!     negative numbers counted in other number bases.
 //! </div>
 //!
-//! Since negative, base-10 numbers are represented with a negative sign,
-//! the digit count of a positive, base-10 number will be equal to the count
-//! of its negated value.
+//! Since negative numbers represented in base-10 are displayed with a negative sign,
+//! the base-10 digit count of a positive number will be equal to the base-10 digit count
+//! of the number's negated value.
 //!
 //! ```rust
 //! # use count_digits::CountDigits;
@@ -64,7 +64,7 @@
 //! ````
 //!
 //! However, the digit counts of negative numbers represented in other bases reflect the
-//! [twos-complement representation](https://en.wikipedia.org/wiki/Two%27s_complement),
+//! [twos-complement](https://en.wikipedia.org/wiki/Two%27s_complement) representation,
 //! and the digit count of a positive number will _not_ be the same as the count
 //! of its negated value.
 //!
@@ -97,7 +97,7 @@
 //! }
 //! ````
 //!
-//! These counts are consistent with the representations of Rust's display format.
+//! This behavior is consistent with Rust's display format.
 //! ```rust
 //! # use count_digits::CountDigits;
 //! assert_eq!(1, format!("{:b}",  1_i8).chars().count());
@@ -119,7 +119,7 @@ use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZ
 pub trait CountDigits: Copy + Sized {
     /// The type of integer that should be passed in to the
     /// [count_digits_radix()](CountDigits::count_digits_radix) function.
-    /// 
+    ///
     /// This is equal to [Self](CountDigits) for primitive types,
     /// and is equal to the corresponding primitive type for non-zero types.
     type Radix;
