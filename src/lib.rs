@@ -6,9 +6,10 @@
 //! Compatible with all primitive integer types and all non-zero integer types.
 //!
 //! ### Examples
+//!
 //! ```rust
 //! use count_digits::CountDigits;
-//! use core::num::NonZeroIsize;
+//! # use core::num::NonZeroIsize;
 //!
 //! assert_eq!(16, 0b1111000000001101.count_bits());
 //! assert_eq!(16, 0b1111000000001101.count_digits_radix(2_u32));
@@ -21,20 +22,38 @@
 //!
 //! assert_eq!(04, 0xF00D.count_hex_digits());
 //! assert_eq!(04, 0xF00D.count_digits_radix(16_u32));
-//!
-//! assert_eq!(
-//!   0xF00D_isize.count_digits(),
-//!   NonZeroIsize::new(0xF00D).unwrap().count_digits(),
-//! );
 //! ```
 //!
-//! #### Note
+//! ---
 //!
-//! Be mindful with negative signed integers in non-decimal number bases.
+//! <div class="warning">
+//! The
+//! <a href="trait.CountDigits.html#tymethod.count_digits" title="method count_digits::CountDigits::count_digits">
+//!    count_digits()
+//! </a>
+//! and
+//! <a href="trait.CountDigits.html#tymethod.count_digits_radix" title="method count_digits::CountDigits::count_digits_radix">
+//!    count_digits_radix(10)
+//! </a>
+//! functions do not include the negative sign in their counts.
+//! </div>
 //!
-//! Since negative decimal numbers are represented with a negative sign,
-//! the decimal digit count of a negative number will be equal to its
-//! positive counterpart.
+//! ```rust
+//! # use count_digits::CountDigits;
+//! assert_eq!(5, 12345_i32.wrapping_neg().count_digits());
+//! assert_eq!(5, 12345_i32.wrapping_neg().count_digits_radix(10));
+//! ````
+//!
+//! ---
+//!
+//! <div class="warning">
+//!     Negative numbers counted in base-10 are counted differently than
+//!     negative numbers counted in other number bases.
+//! </div>
+//!
+//! Since negative, base-10 numbers are represented with a negative sign,
+//! the digit count of a positive, base-10 number will be equal to the count
+//! of its negated value.
 //!
 //! ```rust
 //! # use count_digits::CountDigits;
@@ -44,8 +63,10 @@
 //! );
 //! ````
 //!
-//! However, a negative number using a different radix will not have the
-//! same count of digits as its positive counterpart.
+//! However, the digit counts of negative numbers represented in other bases reflect the
+//! [twos-complement representation](https://en.wikipedia.org/wiki/Two%27s_complement),
+//! and the digit count of a positive number will _not_ be the same as the count
+//! of its negated value.
 //!
 //! ```rust
 //! # use count_digits::CountDigits;
@@ -75,18 +96,38 @@
 //!     }
 //! }
 //! ````
+//!
+//! These counts are consistent with the representations of Rust's display format.
+//! ```rust
+//! # use count_digits::CountDigits;
+//! assert_eq!(1, format!("{:b}",  1_i8).chars().count());
+//! assert_eq!(1, format!("{:o}",  1_i8).chars().count());
+//! assert_eq!(1, format!("{  }",  1_i8).chars().count());
+//! assert_eq!(1, format!("{:x}",  1_i8).chars().count());
+//!
+//! assert_eq!(8, format!("{:b}", -1_i8).chars().count());
+//! assert_eq!(3, format!("{:o}", -1_i8).chars().count());
+//! assert_eq!(1, format!("{  }", -1_i8).strip_prefix('-').unwrap().chars().count());
+//! assert_eq!(2, format!("{:x}", -1_i8).chars().count());
+//! ````
 
 use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
 use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
 
 /// A [no_std](https://docs.rust-embedded.org/book/intro/no-std.html) trait to count
-/// the digits of an integer in various number bases.
+/// the digits of integer types in various number bases.
 pub trait CountDigits: Copy + Sized {
     /// The type of integer that should be passed in to the
     /// [count_digits_radix()](CountDigits::count_digits_radix) function.
+    /// 
+    /// This is equal to [Self](CountDigits) for primitive types,
+    /// and is equal to the corresponding primitive type for non-zero types.
     type Radix;
 
     /// Returns the count of bits in an integer starting with the first non-zero bit.
+    ///
+    /// # Examples
+    ///
     /// ```rust
     /// use count_digits::CountDigits;
     /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
@@ -193,7 +234,9 @@ pub trait CountDigits: Copy + Sized {
     fn count_bits(self) -> u32;
 
     /// Returns the count of octal digits in an integer starting with the first non-zero digit.
-    /// ### Examples
+    ///
+    /// # Examples
+    ///
     /// ```rust
     /// use count_digits::CountDigits;
     /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
@@ -301,11 +344,12 @@ pub trait CountDigits: Copy + Sized {
 
     /// Returns the count of decimal digits in an integer.
     ///
-    /// ###### Note
+    /// <div class="warning">
+    /// Does not count the negative sign when counting negative, signed integers.
+    /// </div>
     ///
-    /// Counts digits only: the negative sign for negative numbers is not counted.
+    /// # Examples
     ///
-    /// ### Examples
     /// ```rust
     /// use count_digits::CountDigits;
     /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
@@ -412,7 +456,9 @@ pub trait CountDigits: Copy + Sized {
     fn count_digits(self) -> u32;
 
     /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
-    /// ### Examples
+    ///
+    /// # Examples
+    ///
     /// ```rust
     /// use count_digits::CountDigits;
     /// # use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
@@ -519,7 +565,9 @@ pub trait CountDigits: Copy + Sized {
     fn count_hex_digits(self) -> u32;
 
     /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
-    /// ### Examples
+    ///
+    /// # Examples
+    ///
     /// ```rust
     /// use count_digits::CountDigits;
     ///
