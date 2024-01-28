@@ -937,8 +937,8 @@ mod count_digits {
         };
     }
 
-    macro_rules! assert_min_and_max {
-        ($type:ty) => {
+    macro_rules! assert_min {
+        ($type:ty, count_bits) => {
             assert_eq!(
                 <$type>::MIN.count_bits(),
                 binary_string_count!(<$type>::MIN)
@@ -947,16 +947,8 @@ mod count_digits {
                 <$type>::MIN.count_digits_radix(2),
                 binary_string_count!(<$type>::MIN)
             );
-
-            assert_eq!(
-                <$type>::MAX.count_bits(),
-                binary_string_count!(<$type>::MAX)
-            );
-            assert_eq!(
-                <$type>::MAX.count_digits_radix(2),
-                binary_string_count!(<$type>::MAX)
-            );
-
+        };
+        ($type:ty, count_octal_digits) => {
             assert_eq!(
                 <$type>::MIN.count_octal_digits(),
                 octal_string_count!(<$type>::MIN),
@@ -965,16 +957,8 @@ mod count_digits {
                 <$type>::MIN.count_digits_radix(8),
                 octal_string_count!(<$type>::MIN),
             );
-
-            assert_eq!(
-                <$type>::MAX.count_octal_digits(),
-                octal_string_count!(<$type>::MAX),
-            );
-            assert_eq!(
-                <$type>::MAX.count_digits_radix(8),
-                octal_string_count!(<$type>::MAX),
-            );
-
+        };
+        ($type:ty, count_digits) => {
             assert_eq!(
                 <$type>::MIN.count_digits(),
                 decimal_string_count!(<$type>::MIN)
@@ -983,16 +967,8 @@ mod count_digits {
                 <$type>::MIN.count_digits_radix(10),
                 decimal_string_count!(<$type>::MIN),
             );
-
-            assert_eq!(
-                <$type>::MAX.count_digits(),
-                decimal_string_count!(<$type>::MAX)
-            );
-            assert_eq!(
-                <$type>::MAX.count_digits_radix(10),
-                decimal_string_count!(<$type>::MAX),
-            );
-
+        };
+        ($type:ty, count_hex_digits) => {
             assert_eq!(
                 <$type>::MIN.count_hex_digits(),
                 hex_string_count!(<$type>::MIN),
@@ -1001,7 +977,41 @@ mod count_digits {
                 <$type>::MIN.count_digits_radix(16),
                 hex_string_count!(<$type>::MIN),
             );
+        };
+    }
 
+    macro_rules! assert_max {
+        ($type:ty, count_bits) => {
+            assert_eq!(
+                <$type>::MAX.count_bits(),
+                binary_string_count!(<$type>::MAX)
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(2),
+                binary_string_count!(<$type>::MAX)
+            );
+        };
+        ($type:ty, count_octal_digits) => {
+            assert_eq!(
+                <$type>::MAX.count_octal_digits(),
+                octal_string_count!(<$type>::MAX),
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(8),
+                octal_string_count!(<$type>::MAX),
+            );
+        };
+        ($type:ty, count_digits) => {
+            assert_eq!(
+                <$type>::MAX.count_digits(),
+                decimal_string_count!(<$type>::MAX)
+            );
+            assert_eq!(
+                <$type>::MAX.count_digits_radix(10),
+                decimal_string_count!(<$type>::MAX),
+            );
+        };
+        ($type:ty, count_hex_digits) => {
             assert_eq!(
                 <$type>::MAX.count_hex_digits(),
                 hex_string_count!(<$type>::MAX),
@@ -1014,19 +1024,23 @@ mod count_digits {
     }
 
     macro_rules! assert_representations {
-        ($n:expr) => {
+        ($n:expr, count_bits) => {
             assert_eq!($n.count_bits(), binary_string_count!($n));
             assert_eq!($n.count_digits_radix(2), binary_string_count!($n));
-
+        };
+        ($n:expr, count_octal_digits) => {
             assert_eq!($n.count_octal_digits(), octal_string_count!($n));
             assert_eq!($n.count_digits_radix(8), octal_string_count!($n));
-
+        };
+        ($n:expr, count_digits) => {
             assert_eq!($n.count_digits(), decimal_string_count!($n));
             assert_eq!($n.count_digits_radix(10), decimal_string_count!($n));
-
+        };
+        ($n:expr, count_hex_digits) => {
             assert_eq!($n.count_hex_digits(), hex_string_count!($n));
             assert_eq!($n.count_digits_radix(16), hex_string_count!($n));
-
+        };
+        ($n:expr, count_digits_radix_ordering) => {
             assert!([
                 $n.count_digits_radix(2),
                 $n.count_digits_radix(3),
@@ -1165,67 +1179,85 @@ mod count_digits {
 
     macro_rules! min_and_max {
         ($type:ty, $non_zero_type:ty) => {
+            min_and_max!($type, $non_zero_type, count_bits);
+            min_and_max!($type, $non_zero_type, count_octal_digits);
+            min_and_max!($type, $non_zero_type, count_digits);
+            min_and_max!($type, $non_zero_type, count_hex_digits);
+        };
+        ($type:ty, $non_zero_type:ty, $function:ident) => {
             paste! {
                 #[test]
-                fn [<$type _min_and_max>]() {
-                    assert_min_and_max!($type);
+                fn [<$type _min_ $function>]() {
+                    assert_min!($type, $function);
+                }
+                #[test]
+                fn [<$type _max_ $function>]() {
+                    assert_max!($type, $function);
                 }
 
                 #[test]
                 #[allow(non_snake_case)]
-                fn [<$non_zero_type _min_and_max>]() {
-                    assert_min_and_max!($type);
+                fn [<$non_zero_type _min_ $function>]() {
+                    assert_min!($non_zero_type, $function);
+                }
+                #[test]
+                #[allow(non_snake_case)]
+                fn [<$non_zero_type _max_ $function>]() {
+                    assert_max!($non_zero_type, $function);
                 }
             }
         };
     }
 
     macro_rules! iteration {
-        (signed, $type:ty, $non_zero_type:ty) => {
+        ($signage:ident, $type:ty, $non_zero_type:ty) => {
+            iteration!($signage, $type, $non_zero_type, count_bits);
+            iteration!($signage, $type, $non_zero_type, count_octal_digits);
+            iteration!($signage, $type, $non_zero_type, count_digits);
+            iteration!($signage, $type, $non_zero_type, count_hex_digits);
+            iteration!($signage, $type, $non_zero_type, count_digits_radix_ordering);
+        };
+        (signed, $type:ty, $non_zero_type:ty, $function:ident) => {
             paste! {
                 #[test]
-                #[allow(overflowing_literals)]
-                fn [<$type _iteration>]() {
+                fn [<$type _iteration_ $function>]() {
                     let max = max_or_upper_bound!($type);
                     let min = min_or_lower_bound!($type);
                     for n in min..=max {
-                        assert_representations!(n);
+                        assert_representations!(n, $function);
                     }
                 }
 
                 #[test]
                 #[allow(non_snake_case)]
-                #[allow(overflowing_literals)]
-                fn [<$non_zero_type _iteration>]() {
+                fn [<$non_zero_type _iteration_ $function>]() {
                     let max = max_or_upper_bound!($type);
                     let min = min_or_lower_bound!($type);
                     for n in min..=max {
                         if n == 0 { continue; }
                         let n = $non_zero_type::new(n).unwrap();
-                        assert_representations!(n);
+                        assert_representations!(n, $function);
                     }
                 }
             }
         };
-        (unsigned, $type:ty, $non_zero_type:ty) => {
+        (unsigned, $type:ty, $non_zero_type:ty, $function:ident) => {
             paste! {
                 #[test]
-                #[allow(overflowing_literals)]
-                fn [<$type _iteration>]() {
+                fn [<$type _iteration_ $function>]() {
                     let max = max_or_upper_bound!($type);
                     for n in $type::MIN..=max {
-                        assert_representations!(n);
+                        assert_representations!(n, $function);
                     }
                 }
 
                 #[test]
                 #[allow(non_snake_case)]
-                #[allow(overflowing_literals)]
-                fn [<$non_zero_type _iteration>]() {
+                fn [<$non_zero_type _iteration_ $function>]() {
                     let max = max_or_upper_bound!($type);
                     for n in $non_zero_type::MIN.get()..=max {
                         let n = $non_zero_type::new(n).unwrap();
-                        assert_representations!(n);
+                        assert_representations!(n, $function);
                     }
                 }
             }
@@ -1234,27 +1266,26 @@ mod count_digits {
 
     macro_rules! boundaries_for_radix {
         ($type:ty, $non_zero_type:ty) => {
-            boundaries_for_radix!($type, $non_zero_type, 2);
-            boundaries_for_radix!($type, $non_zero_type, 3);
-            boundaries_for_radix!($type, $non_zero_type, 4);
-            boundaries_for_radix!($type, $non_zero_type, 5);
-            boundaries_for_radix!($type, $non_zero_type, 6);
-            boundaries_for_radix!($type, $non_zero_type, 7);
-            boundaries_for_radix!($type, $non_zero_type, 8);
-            boundaries_for_radix!($type, $non_zero_type, 9);
-            boundaries_for_radix!($type, $non_zero_type, 10);
-            boundaries_for_radix!($type, $non_zero_type, 11);
-            boundaries_for_radix!($type, $non_zero_type, 12);
-            boundaries_for_radix!($type, $non_zero_type, 13);
-            boundaries_for_radix!($type, $non_zero_type, 14);
-            boundaries_for_radix!($type, $non_zero_type, 15);
-            boundaries_for_radix!($type, $non_zero_type, 16);
-            boundaries_for_radix!($type, $non_zero_type, 17);
-            boundaries_for_radix!($type, $non_zero_type, 18);
-            boundaries_for_radix!($type, $non_zero_type, 19);
-            boundaries_for_radix!($type, $non_zero_type, 20);
+            boundaries_for_radix!(02, $type, $non_zero_type);
+            boundaries_for_radix!(03, $type, $non_zero_type);
+            boundaries_for_radix!(04, $type, $non_zero_type);
+            boundaries_for_radix!(05, $type, $non_zero_type);
+            boundaries_for_radix!(06, $type, $non_zero_type);
+            boundaries_for_radix!(07, $type, $non_zero_type);
+            boundaries_for_radix!(08, $type, $non_zero_type);
+            boundaries_for_radix!(09, $type, $non_zero_type);
+            boundaries_for_radix!(10, $type, $non_zero_type);
+            boundaries_for_radix!(11, $type, $non_zero_type);
+            boundaries_for_radix!(12, $type, $non_zero_type);
+            boundaries_for_radix!(13, $type, $non_zero_type);
+            boundaries_for_radix!(14, $type, $non_zero_type);
+            boundaries_for_radix!(15, $type, $non_zero_type);
+            boundaries_for_radix!(16, $type, $non_zero_type);
+            boundaries_for_radix!(17, $type, $non_zero_type);
+            boundaries_for_radix!(18, $type, $non_zero_type);
+            boundaries_for_radix!(19, $type, $non_zero_type);
         };
-        ($type:ty, $non_zero_type:ty, $radix:expr) => {
+        ($radix:expr, $type:ty, $non_zero_type:ty) => {
             paste! {
                 #[test]
                 fn [<$type _boundaries_for_radix_ $radix>]() {
@@ -1290,19 +1321,19 @@ mod count_digits {
         };
     }
 
-    add_test!(min_and_max, i8, NonZeroI8);
-    add_test!(min_and_max, i16, NonZeroI16);
-    add_test!(min_and_max, i32, NonZeroI32);
-    add_test!(min_and_max, i64, NonZeroI64);
-    add_test!(min_and_max, i128, NonZeroI128);
-    add_test!(min_and_max, isize, NonZeroIsize);
+    add_test!(boundaries_for_radix, i8, NonZeroI8);
+    add_test!(boundaries_for_radix, i16, NonZeroI16);
+    add_test!(boundaries_for_radix, i32, NonZeroI32);
+    add_test!(boundaries_for_radix, i64, NonZeroI64);
+    add_test!(boundaries_for_radix, i128, NonZeroI128);
+    add_test!(boundaries_for_radix, isize, NonZeroIsize);
 
-    add_test!(min_and_max, u8, NonZeroU8);
-    add_test!(min_and_max, u16, NonZeroU16);
-    add_test!(min_and_max, u32, NonZeroU32);
-    add_test!(min_and_max, u64, NonZeroU64);
-    add_test!(min_and_max, u128, NonZeroU128);
-    add_test!(min_and_max, usize, NonZeroUsize);
+    add_test!(boundaries_for_radix, u8, NonZeroU8);
+    add_test!(boundaries_for_radix, u16, NonZeroU16);
+    add_test!(boundaries_for_radix, u32, NonZeroU32);
+    add_test!(boundaries_for_radix, u64, NonZeroU64);
+    add_test!(boundaries_for_radix, u128, NonZeroU128);
+    add_test!(boundaries_for_radix, usize, NonZeroUsize);
 
     add_test!(iteration, signed, i8, NonZeroI8);
     add_test!(iteration, signed, i16, NonZeroI16);
@@ -1318,17 +1349,17 @@ mod count_digits {
     add_test!(iteration, unsigned, u128, NonZeroU128);
     add_test!(iteration, unsigned, usize, NonZeroUsize);
 
-    add_test!(boundaries_for_radix, i8, NonZeroI8);
-    add_test!(boundaries_for_radix, i16, NonZeroI16);
-    add_test!(boundaries_for_radix, i32, NonZeroI32);
-    add_test!(boundaries_for_radix, i64, NonZeroI64);
-    add_test!(boundaries_for_radix, i128, NonZeroI128);
-    add_test!(boundaries_for_radix, isize, NonZeroIsize);
+    add_test!(min_and_max, i8, NonZeroI8);
+    add_test!(min_and_max, i16, NonZeroI16);
+    add_test!(min_and_max, i32, NonZeroI32);
+    add_test!(min_and_max, i64, NonZeroI64);
+    add_test!(min_and_max, i128, NonZeroI128);
+    add_test!(min_and_max, isize, NonZeroIsize);
 
-    add_test!(boundaries_for_radix, u8, NonZeroU8);
-    add_test!(boundaries_for_radix, u16, NonZeroU16);
-    add_test!(boundaries_for_radix, u32, NonZeroU32);
-    add_test!(boundaries_for_radix, u64, NonZeroU64);
-    add_test!(boundaries_for_radix, u128, NonZeroU128);
-    add_test!(boundaries_for_radix, usize, NonZeroUsize);
+    add_test!(min_and_max, u8, NonZeroU8);
+    add_test!(min_and_max, u16, NonZeroU16);
+    add_test!(min_and_max, u32, NonZeroU32);
+    add_test!(min_and_max, u64, NonZeroU64);
+    add_test!(min_and_max, u128, NonZeroU128);
+    add_test!(min_and_max, usize, NonZeroUsize);
 }
