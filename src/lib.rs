@@ -599,7 +599,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_bits
                 } else {
-                    1 + self.abs_diff(0).checked_ilog2().unwrap_or_default()
+                    1 + self.checked_ilog2().unwrap_or_default()
                 }
             }
 
@@ -615,7 +615,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_octal_digits
                 } else {
-                    1 + self.abs_diff(0).checked_ilog(8).unwrap_or_default()
+                    1 + self.checked_ilog(8).unwrap_or_default()
                 }
             }
 
@@ -625,7 +625,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_hex_digits
                 } else {
-                    1 + self.abs_diff(0).checked_ilog(16).unwrap_or_default()
+                    1 + self.checked_ilog(16).unwrap_or_default()
                 }
             }
 
@@ -639,10 +639,7 @@ macro_rules! impl_count_digits {
                     16 => self.count_hex_digits(),
                     __ => {
                         if self.is_negative() {
-                            1 + <$primitive_type>::MIN
-                                .abs_diff(0)
-                                .checked_ilog(radix)
-                                .unwrap_or_default()
+                            1 + <$primitive_type>::MIN.abs_diff(0).ilog(radix)
                         } else {
                             1 + self.abs_diff(0).checked_ilog(radix).unwrap_or_default()
                         }
@@ -660,7 +657,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_bits
                 } else {
-                    1 + self.get().abs_diff(0).ilog2()
+                    1 + self.get().ilog2()
                 }
             }
 
@@ -676,7 +673,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_octal_digits
                 } else {
-                    1 + self.get().abs_diff(0).ilog(8)
+                    1 + self.get().ilog(8)
                 }
             }
 
@@ -686,7 +683,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_hex_digits
                 } else {
-                    1 + self.get().abs_diff(0).ilog(16)
+                    1 + self.get().ilog(16)
                 }
             }
 
@@ -700,7 +697,7 @@ macro_rules! impl_count_digits {
                     16 => self.count_hex_digits(),
                     __ => {
                         if self.is_negative() {
-                            1 + <$non_zero_type>::MIN.get().abs_diff(0).ilog(radix)
+                            1 + <$primitive_type>::MIN.abs_diff(0).ilog(radix)
                         } else {
                             1 + self.get().abs_diff(0).ilog(radix)
                         }
