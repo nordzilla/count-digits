@@ -27,7 +27,7 @@ assert_eq!(04, 0xF00D.count_digits_radix(16_u32));
 
 ---
 
-> [!NOTE]  
+> [!NOTE]
 > The [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
 > and [count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
 > functions do not include the negative sign in their counts.
@@ -39,7 +39,7 @@ assert_eq!(5, 12345_i32.wrapping_neg().count_digits_radix(10));
 
 ---
 
-> [!NOTE]  
+> [!NOTE]
 > Negative numbers counted in base-10 are counted differently than
 > negative numbers counted in other number bases.
 
@@ -98,6 +98,14 @@ assert_eq!(8, format!("{:b}", -1_i8).chars().count());
 assert_eq!(3, format!("{:o}", -1_i8).chars().count());
 assert_eq!(1, format!("{  }", -1_i8).strip_prefix('-').unwrap().chars().count());
 assert_eq!(2, format!("{:x}", -1_i8).chars().count());
-````
+```
+
+#### Benchmarks
+
+* [table](https://nordzilla.github.io/count-digits)
+* [count_bits()](https://nordzilla.github.io/count-digits/count_bits/report/index.html)
+* [count_octal_digits()](https://nordzilla.github.io/count-digits/count_octal_digits/report/index.html)
+* [count_digits()](https://nordzilla.github.io/count-digits/count_digits/report/index.html)
+* [count_hex_digits()](https://nordzilla.github.io/count-digits/count_hex_digits/report/index.html)
 
 License: MIT
