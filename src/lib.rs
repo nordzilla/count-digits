@@ -109,7 +109,15 @@
 //! assert_eq!(3, format!("{:o}", -1_i8).chars().count());
 //! assert_eq!(1, format!("{  }", -1_i8).strip_prefix('-').unwrap().chars().count());
 //! assert_eq!(2, format!("{:x}", -1_i8).chars().count());
-//! ````
+//! ```
+//! 
+//! ### Benchmarks
+//! 
+//! * [table](https://nordzilla.github.io/count-digits)
+//! * [count_bits()](https://nordzilla.github.io/count-digits/count_bits/report/index.html)
+//! * [count_octal_digits()](https://nordzilla.github.io/count-digits/count_octal_digits/report/index.html)
+//! * [count_digits()](https://nordzilla.github.io/count-digits/count_digits/report/index.html)
+//! * [count_hex_digits()](https://nordzilla.github.io/count-digits/count_hex_digits/report/index.html)
 
 use core::num::{NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize};
 use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
