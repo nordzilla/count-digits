@@ -28,9 +28,10 @@ assert_eq!(04, 0xF00D.count_digits_radix(16_u32));
 ---
 
 > [!NOTE]
-> The [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
+> The base-10 functions 
+> [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
 > and [count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
-> functions do not include the negative sign in their counts.
+> do not include the negative sign in their counts.
 
 ```rust
 assert_eq!(5, 12345_i32.wrapping_neg().count_digits());
@@ -45,7 +46,7 @@ assert_eq!(5, 12345_i32.wrapping_neg().count_digits_radix(10));
 
 Since negative numbers represented in base-10 are displayed with a negative sign,
 the base-10 digit count of a positive number will be equal to the base-10 digit count
-of the number's negated value.
+of the number's negated value, assuming no wrapping occurred.
 
 ```rust
 assert_eq!(
