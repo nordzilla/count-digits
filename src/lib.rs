@@ -630,7 +630,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_octal_digits
                 } else {
-                    1 + self.checked_ilog(8).unwrap_or_default()
+                    1 + self.checked_ilog2().unwrap_or_default() / 3
                 }
             }
 
@@ -688,7 +688,7 @@ macro_rules! impl_count_digits {
                 if self.is_negative() {
                     $min_value_octal_digits
                 } else {
-                    1 + self.get().ilog(8)
+                    1 + self.get().ilog2() / 3
                 }
             }
 
@@ -743,7 +743,7 @@ macro_rules! impl_count_digits {
             #[inline(always)]
             /// Returns the count of octal digits in an integer starting with the first non-zero digit.
             fn count_octal_digits(self) -> u32 {
-                1 + self.checked_ilog(8).unwrap_or_default()
+                1 + self.checked_ilog2().unwrap_or_default() / 3
             }
 
             #[inline(always)]
@@ -783,7 +783,7 @@ macro_rules! impl_count_digits {
             #[inline(always)]
             /// Returns the count of octal digits in an integer starting with the first non-zero digit.
             fn count_octal_digits(self) -> u32 {
-                1 + self.get().ilog(8)
+                1 + self.get().ilog2() / 3
             }
 
             #[inline(always)]
