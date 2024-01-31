@@ -27,7 +27,7 @@
 //! ---
 //!
 //! <div class="warning">
-//! The
+//! The base-10 functions 
 //! <a href="trait.CountDigits.html#tymethod.count_digits" title="method count_digits::CountDigits::count_digits">
 //!    count_digits()
 //! </a>
@@ -35,7 +35,7 @@
 //! <a href="trait.CountDigits.html#tymethod.count_digits_radix" title="method count_digits::CountDigits::count_digits_radix">
 //!    count_digits_radix(10)
 //! </a>
-//! functions do not include the negative sign in their counts.
+//! do not include the negative sign in their counts.
 //! </div>
 //!
 //! ```rust
@@ -53,7 +53,7 @@
 //!
 //! Since negative numbers represented in base-10 are displayed with a negative sign,
 //! the base-10 digit count of a positive number will be equal to the base-10 digit count
-//! of the number's negated value.
+//! of the number's negated value, assuming no wrapping occurred.
 //!
 //! ```rust
 //! # use count_digits::CountDigits;
@@ -573,6 +573,13 @@ pub trait CountDigits: Copy + Sized {
     fn count_hex_digits(self) -> u32;
 
     /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+    /// 
+    /// <div class="warning">
+    /// For radix 10, does not count the negative sign when counting negative, signed integers.
+    /// 
+    /// For all other radix values, counts digits according to the 
+    /// <a href="https://en.wikipedia.org/wiki/Two%27s_complement">twos-complement</a> representation.
+    /// </div>
     ///
     /// # Examples
     ///
