@@ -27,7 +27,7 @@
 //! ---
 //!
 //! <div class="warning">
-//! The base-10 functions 
+//! The base-10 functions
 //! <a href="trait.CountDigits.html#tymethod.count_digits" title="method count_digits::CountDigits::count_digits">
 //!    count_digits()
 //! </a>
@@ -110,9 +110,9 @@
 //! assert_eq!(1, format!("{  }", -1_i8).strip_prefix('-').unwrap().chars().count());
 //! assert_eq!(2, format!("{:x}", -1_i8).chars().count());
 //! ```
-//! 
+//!
 //! ### Benchmarks
-//! 
+//!
 //! * [table](https://nordzilla.github.io/count-digits)
 //! * [count_bits()](https://nordzilla.github.io/count-digits/count_bits/report/index.html)
 //! * [count_octal_digits()](https://nordzilla.github.io/count-digits/count_octal_digits/report/index.html)
@@ -573,11 +573,11 @@ pub trait CountDigits: Copy + Sized {
     fn count_hex_digits(self) -> u32;
 
     /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
-    /// 
+    ///
     /// <div class="warning">
     /// For radix 10, does not count the negative sign when counting negative, signed integers.
-    /// 
-    /// For all other radix values, counts digits according to the 
+    ///
+    /// For all other radix values, counts digits according to the
     /// <a href="https://en.wikipedia.org/wiki/Two%27s_complement">twos-complement</a> representation.
     /// </div>
     ///
