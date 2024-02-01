@@ -41,7 +41,8 @@ impl_maybe_from_u128!(u128, NonZeroU128);
 
 macro_rules! radix_boundaries {
     ($type:ty, $radix:expr) => {
-        std::iter::successors(Some($radix as $type), move |n| n.checked_mul($radix)).map(|n| (n - 1) / 3)
+        std::iter::successors(Some($radix as $type), move |n| n.checked_mul($radix))
+            .map(|n| (n - 1) / 3)
     };
 }
 
@@ -49,10 +50,7 @@ macro_rules! comparison_bench_function {
     ($group:expr, $type:ty, $fn:ident, $input:expr) => {
         if let Some(n) = <$type>::maybe_from_u128(*$input) {
             $group.bench_with_input(
-                BenchmarkId::new(
-                    stringify!($type),
-                    $input.count_hex_digits(),
-                ),
+                BenchmarkId::new(stringify!($type), $input.count_hex_digits()),
                 &$input.count_hex_digits(),
                 |b, _| b.iter(move || CountDigits::$fn(black_box(n))),
             );
