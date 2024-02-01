@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.2.5 (2024-01-31)
+
+**Improves**
+
+* Refactors count_octal_digits to use ilog2 internally.
+* Refactors count_hex_digits to use ilog2 internally.
+
+The v0.2.4 benchmarks show that `ilog2`, used by `count_bits`, has the same performance regardless of the size of the integer input. 
+
+The v0.2.4 benchmarks show that `count_octal_digits` and `count_hex_digits` functions, which were previously using `ilog(8)` and `ilog(16)` respectively, did show decreased performance based on the size of the integer input.
+
+![A graph of count-octal-digits benchmarks for v0.2.4](https://raw.githubusercontent.com/nordzilla/count-digits/main/benches/images/count-octal-digits-v0.2.4.png)
+
+The v0.2.5 `count_octal_digits` and `count_hex_digits` are now implemented internally using `ilog2`, and now share that consistent, improved performance across the board.
+
+![A graph of count-octal-digits benchmarks for v0.2.5](https://raw.githubusercontent.com/nordzilla/count-digits/main/benches/images/count-octal-digits-v0.2.5.png)
+
 ## v0.2.4 (2024-01-30)
 
 **Adds**
