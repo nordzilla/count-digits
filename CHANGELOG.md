@@ -9,9 +9,12 @@
 
 **Changes**
 
-* Removes unnecessary `checked_ilog` functions from the implementations of various `CountDigits` functions.
 * Reworks testing macros to make the test output more granular.
 * Reworks the benchmark test boundaries to test iterations for each hexadecimal digit added to an integer, from one to max, for each integer type.
+
+**Improves**
+
+* Removes unnecessary `checked_ilog` functions from the implementations of various `CountDigits` functions.
 
 ## v0.2.3 (2024-01-26)
 
