@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.6 (2024-01-31)
+
+**Changes**
+
+* Include only the files necessary to build the crate for publishing in the Cargo.toml.
+
 ## v0.2.5 (2024-01-31)
 
 **Improves**
