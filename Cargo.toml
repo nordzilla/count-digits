@@ -10,7 +10,7 @@ categories = [ "algorithms", "mathematics", "no-std" ]
 license = "MIT"
 edition = "2021"
 rust-version = "1.71.1"
-include = ["src/lib.rs", "LICENSE", "README.md", "CHANGELOG.md"]
+include = ["src/lib.rs", "benches/benchmark.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }
