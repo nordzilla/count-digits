@@ -461,7 +461,7 @@ pub trait CountDigits: Copy + Sized {
     ///   assert_eq!(NonZeroUsize::MAX.count_digits(), NonZeroU8::MAX.count_digits());
     /// }
     /// ```
-    fn count_digits(self) -> u32;
+    fn count_digits(self) -> usize;
 
     /// Returns the count of hexadecimal digits in an integer starting with the first non-zero digit.
     ///
@@ -587,13 +587,13 @@ pub trait CountDigits: Copy + Sized {
     /// use count_digits::CountDigits;
     ///
     /// for n in 0..1_000_000 {
-    ///   assert_eq!(n.count_digits_radix(02_u32), n.count_bits());
-    ///   assert_eq!(n.count_digits_radix(08_u32), n.count_octal_digits());
+    ///   assert_eq!(n.count_digits_radix(02_u32) as u32, n.count_bits());
+    ///   assert_eq!(n.count_digits_radix(08_u32) as u32, n.count_octal_digits());
     ///   assert_eq!(n.count_digits_radix(10_u32), n.count_digits());
-    ///   assert_eq!(n.count_digits_radix(16_u32), n.count_hex_digits());
+    ///   assert_eq!(n.count_digits_radix(16_u32) as u32, n.count_hex_digits());
     /// }
     /// ```
-    fn count_digits_radix(self, radix: Self::Radix) -> u32;
+    fn count_digits_radix(self, radix: Self::Radix) -> usize;
 }
 
 macro_rules! impl_count_digits {
@@ -619,12 +619,6 @@ macro_rules! impl_count_digits {
             }
 
             #[inline(always)]
-            /// Returns the count of decimal digits in an integer.
-            fn count_digits(self) -> u32 {
-                1 + self.abs_diff(0).checked_ilog10().unwrap_or_default()
-            }
-
-            #[inline(always)]
             /// Returns the count of octal digits in an integer starting with the first non-zero digit.
             fn count_octal_digits(self) -> u32 {
                 if self.is_negative() {
@@ -645,18 +639,24 @@ macro_rules! impl_count_digits {
             }
 
             #[inline(always)]
+            /// Returns the count of decimal digits in an integer.
+            fn count_digits(self) -> usize {
+                1 + self.abs_diff(0).checked_ilog10().unwrap_or_default() as usize
+            }
+
+            #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
-            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+            fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
-                    02 => self.count_bits(),
-                    08 => self.count_octal_digits(),
+                    02 => self.count_bits() as usize,
+                    08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
-                    16 => self.count_hex_digits(),
+                    16 => self.count_hex_digits() as usize,
                     __ => {
                         if self.is_negative() {
-                            1 + <$primitive_type>::MIN.abs_diff(0).ilog(radix)
+                            1 + <$primitive_type>::MIN.abs_diff(0).ilog(radix) as usize
                         } else {
-                            1 + self.abs_diff(0).checked_ilog(radix).unwrap_or_default()
+                            1 + self.abs_diff(0).checked_ilog(radix).unwrap_or_default() as usize
                         }
                     }
                 }
@@ -674,12 +674,6 @@ macro_rules! impl_count_digits {
                 } else {
                     1 + self.get().ilog2()
                 }
-            }
-
-            #[inline(always)]
-            /// Returns the count of decimal digits in an integer.
-            fn count_digits(self) -> u32 {
-                1 + self.get().abs_diff(0).ilog10()
             }
 
             #[inline(always)]
@@ -703,18 +697,24 @@ macro_rules! impl_count_digits {
             }
 
             #[inline(always)]
+            /// Returns the count of decimal digits in an integer.
+            fn count_digits(self) -> usize {
+                1 + self.get().abs_diff(0).ilog10() as usize
+            }
+
+            #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
-            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+            fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
-                    02 => self.count_bits(),
-                    08 => self.count_octal_digits(),
+                    02 => self.count_bits() as usize,
+                    08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
-                    16 => self.count_hex_digits(),
+                    16 => self.count_hex_digits() as usize,
                     __ => {
                         if self.is_negative() {
-                            1 + <$primitive_type>::MIN.abs_diff(0).ilog(radix)
+                            1 + <$primitive_type>::MIN.abs_diff(0).ilog(radix) as usize
                         } else {
-                            1 + self.get().abs_diff(0).ilog(radix)
+                            1 + self.get().abs_diff(0).ilog(radix) as usize
                         }
                     }
                 }
@@ -735,12 +735,6 @@ macro_rules! impl_count_digits {
             }
 
             #[inline(always)]
-            /// Returns the count of decimal digits in an integer.
-            fn count_digits(self) -> u32 {
-                1 + self.checked_ilog10().unwrap_or_default()
-            }
-
-            #[inline(always)]
             /// Returns the count of octal digits in an integer starting with the first non-zero digit.
             fn count_octal_digits(self) -> u32 {
                 1 + self.checked_ilog2().unwrap_or_default() / 3
@@ -753,14 +747,20 @@ macro_rules! impl_count_digits {
             }
 
             #[inline(always)]
+            /// Returns the count of decimal digits in an integer.
+            fn count_digits(self) -> usize {
+                1 + self.checked_ilog10().unwrap_or_default() as usize
+            }
+
+            #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
-            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+            fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
-                    02 => self.count_bits(),
-                    08 => self.count_octal_digits(),
+                    02 => self.count_bits() as usize,
+                    08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
-                    16 => self.count_hex_digits(),
-                    __ => 1 + self.checked_ilog(radix).unwrap_or_default(),
+                    16 => self.count_hex_digits() as usize,
+                    __ => 1 + self.checked_ilog(radix).unwrap_or_default() as usize,
                 }
             }
         }
@@ -772,12 +772,6 @@ macro_rules! impl_count_digits {
             /// Returns the count of bits in an integer starting with the first non-zero bit.
             fn count_bits(self) -> u32 {
                 1 + self.ilog2()
-            }
-
-            #[inline(always)]
-            /// Returns the count of decimal digits in an integer.
-            fn count_digits(self) -> u32 {
-                1 + self.ilog10()
             }
 
             #[inline(always)]
@@ -793,14 +787,20 @@ macro_rules! impl_count_digits {
             }
 
             #[inline(always)]
+            /// Returns the count of decimal digits in an integer.
+            fn count_digits(self) -> usize {
+                1 + self.ilog10() as usize
+            }
+
+            #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
-            fn count_digits_radix(self, radix: Self::Radix) -> u32 {
+            fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
-                    02 => self.count_bits(),
-                    08 => self.count_octal_digits(),
+                    02 => self.count_bits() as usize,
+                    08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
-                    16 => self.count_hex_digits(),
-                    _ => 1 + self.get().ilog(radix),
+                    16 => self.count_hex_digits() as usize,
+                    _ => 1 + self.get().ilog(radix) as usize,
                 }
             }
         }
@@ -942,7 +942,7 @@ mod count_digits {
     macro_rules! decimal_string_count {
         ($n:expr) => {{
             let string = format!("{}", $n);
-            string.strip_prefix('-').unwrap_or(&string).len() as u32
+            string.strip_prefix('-').unwrap_or(&string).len()
         }};
     }
 
@@ -960,7 +960,7 @@ mod count_digits {
             );
             assert_eq!(
                 <$type>::MIN.count_digits_radix(2),
-                binary_string_count!(<$type>::MIN)
+                binary_string_count!(<$type>::MIN) as usize,
             );
         };
         ($type:ty, count_octal_digits) => {
@@ -970,7 +970,7 @@ mod count_digits {
             );
             assert_eq!(
                 <$type>::MIN.count_digits_radix(8),
-                octal_string_count!(<$type>::MIN),
+                octal_string_count!(<$type>::MIN) as usize,
             );
         };
         ($type:ty, count_digits) => {
@@ -990,7 +990,7 @@ mod count_digits {
             );
             assert_eq!(
                 <$type>::MIN.count_digits_radix(16),
-                hex_string_count!(<$type>::MIN),
+                hex_string_count!(<$type>::MIN) as usize,
             );
         };
     }
@@ -1003,7 +1003,7 @@ mod count_digits {
             );
             assert_eq!(
                 <$type>::MAX.count_digits_radix(2),
-                binary_string_count!(<$type>::MAX)
+                binary_string_count!(<$type>::MAX) as usize,
             );
         };
         ($type:ty, count_octal_digits) => {
@@ -1013,7 +1013,7 @@ mod count_digits {
             );
             assert_eq!(
                 <$type>::MAX.count_digits_radix(8),
-                octal_string_count!(<$type>::MAX),
+                octal_string_count!(<$type>::MAX) as usize,
             );
         };
         ($type:ty, count_digits) => {
@@ -1033,7 +1033,7 @@ mod count_digits {
             );
             assert_eq!(
                 <$type>::MAX.count_digits_radix(16),
-                hex_string_count!(<$type>::MAX),
+                hex_string_count!(<$type>::MAX) as usize,
             );
         };
     }
@@ -1041,11 +1041,11 @@ mod count_digits {
     macro_rules! assert_representations {
         ($n:expr, count_bits) => {
             assert_eq!($n.count_bits(), binary_string_count!($n));
-            assert_eq!($n.count_digits_radix(2), binary_string_count!($n));
+            assert_eq!($n.count_digits_radix(2), binary_string_count!($n) as usize);
         };
         ($n:expr, count_octal_digits) => {
             assert_eq!($n.count_octal_digits(), octal_string_count!($n));
-            assert_eq!($n.count_digits_radix(8), octal_string_count!($n));
+            assert_eq!($n.count_digits_radix(8), octal_string_count!($n) as usize);
         };
         ($n:expr, count_digits) => {
             assert_eq!($n.count_digits(), decimal_string_count!($n));
@@ -1053,7 +1053,7 @@ mod count_digits {
         };
         ($n:expr, count_hex_digits) => {
             assert_eq!($n.count_hex_digits(), hex_string_count!($n));
-            assert_eq!($n.count_digits_radix(16), hex_string_count!($n));
+            assert_eq!($n.count_digits_radix(16), hex_string_count!($n) as usize);
         };
         ($n:expr, count_digits_radix_ordering) => {
             assert!([
@@ -1179,9 +1179,9 @@ mod count_digits {
     }
 
     /// Returns an iterator of increasing pairs staring with (1, 2).
-    fn increasing_pairs() -> impl Iterator<Item = (u32, u32)> {
-        std::iter::successors(Some(1u32), move |n| n.checked_add(1))
-            .zip(std::iter::successors(Some(2u32), move |n| n.checked_add(1)))
+    fn increasing_pairs() -> impl Iterator<Item = (usize, usize)> {
+        std::iter::successors(Some(1usize), move |n| n.checked_add(1))
+            .zip(std::iter::successors(Some(2usize), move |n| n.checked_add(1)))
     }
 
     #[test]
