@@ -1,10 +1,36 @@
 # Changelog
 
+## v0.3.0 (2024-02-04)
+
+**Major Changes**
+
+* Changes the return type of `CountDigits::count_digits()` from `u32` to `usize`.
+* Changes the return type of `CountDigits::count_digits_radix()` from `u32` to `usize`.
+* Implements `CountDigits` for references to types that implement `CountDigits`.
+
+**Adds**
+
+* Adds new tests for reference types.
+
+The rationale behind changing the return types listed above is that bit-related functions
+typically return `u32` and take `u32` as parameters, but `usize` is often used for formatting
+and display. 
+
+In this way, the inherently bit-related functions, `count_bits()`, 
+`count_octal_digits()`, and `count_hex_digits()` continue to return `u32` and can be used
+with the `BITS` constants as well as bit-shifting functions without the need to cast. 
+
+Likewise, the `count_digits()` function as well as the `count_digits_radix()` function can be used
+as arguments for formatting without the need to cast. 
+
+I believe this provides the best compromise,
+allowing the trait to be used smoothly across various use cases without the `as` keyword. 
+
 ## v0.2.6 (2024-01-31)
 
 **Changes**
 
-* Include only the files necessary to build the crate for publishing in the Cargo.toml.
+* Includes only the files necessary to build the crate for publishing in the Cargo.toml.
 
 ## v0.2.5 (2024-01-31)
 
@@ -74,6 +100,9 @@ The v0.2.5 `count_octal_digits` and `count_hex_digits` are now implemented inter
 
 ## v0.2.0 (2024-01-24)
 
+**Major Changes**
+* Adds new trait functions to `CountDigits`, listed below.
+
 **Adds**
 
 * Adds `CountDigits::count_bits()`.
@@ -86,10 +115,9 @@ The v0.2.5 `count_octal_digits` and `count_hex_digits` are now implemented inter
 * Implements the above functions for unsigned, non-zero integer types.
 * Bumps the minimum supported Rust version `(1.67.1 -> 1.71.1)` due to using `is_negative()` for non-zero integer types.
 
-**Changes**
-
-* Refactors min_and_max tests.
+**Minor Changes**
 * Refactors iteration tests.
+* Refactors min_and_max tests.
 
 ## v0.1.0 (2024-01-22)
 > Initial Release
