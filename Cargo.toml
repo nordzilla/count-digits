@@ -19,7 +19,3 @@ paste = "1.0.14"
 [[bench]]
 name = "benchmark"
 harness = false
-
-[badges]
-codecov = { repository = "nordzilla/count-digits", branch = "main", service = "github" }
-
