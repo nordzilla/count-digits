@@ -40,7 +40,12 @@ pub trait CountDigits: Copy + Sized {
     fn count_digits(self) -> usize;
 
     /// Returns the count of digits in an integer for a given radix.
+    /// Panics if the provided radix is invalid.
     fn count_digits_radix(self, radix: Self::Radix) -> usize;
+
+    /// Returns the count of digits in an integer for a given radix.
+    /// Returns None if the given radix is invalid.
+    fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize>;
 }
 ```
 
@@ -60,6 +65,10 @@ assert_eq!(04_usize, 0xF00D.count_digits_radix(16_u32));
 
 assert_eq!(05_usize, 61453.count_digits());
 assert_eq!(05_usize, 61453.count_digits_radix(10_u32));
+
+assert!(1.checked_count_digits_radix(0_u32).is_none());
+assert!(1.checked_count_digits_radix(1_u32).is_none());
+assert!(1.checked_count_digits_radix(2_u32).is_some());
 ```
 
 The named functions for which the radix is a power of two (
@@ -75,8 +84,8 @@ assert_eq!(0b1011__i32.count_bits(),  i32::BITS - 0b1011__i32.leading_zeros());
 assert_eq!(0b1011_u128.count_bits(), u128::BITS - 0b1011_u128.leading_zeros());
 ```
 
-The base-10 [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
-function returns [usize](https://doc.rust-lang.org/core/primitive.usize.html) for compatibility with Rust's formatting macros.
+The base-10 function [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
+returns [usize](https://doc.rust-lang.org/core/primitive.usize.html) for compatibility with Rust's formatting macros.
 
 ```rust
 let max_digits = [1, 2, 15, 105]
@@ -92,7 +101,9 @@ for n in [1, 2, 15, 105] {
 
 In the case of formatting binary, octal, or hex numbers, the
 [count_digits_radix(2 | 8 | 16)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
-function can be used to retrieve the desired count directly as a [usize](https://doc.rust-lang.org/core/primitive.usize.html).
+and [checked_count_digits_radix(2 | 8 | 16)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
+functions can be used to retrieve the desired count directly as a [usize](https://doc.rust-lang.org/core/primitive.usize.html), or
+the value can simply be cast using the [as](https://doc.rust-lang.org/std/keyword.as.html) keyword.
 
 ```rust
 let max_bits = [0b1, 0b10, 0b101, 0b1011]
@@ -109,10 +120,11 @@ for n in [0b1, 0b10, 0b101, 0b1011] {
 ---
 
 > [!NOTE]
-> The base-10 functions 
-> [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
-> and [count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
-> do not include the negative sign in their counts.
+> Function calls that count digits in base 10 (
+> [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits),
+> [count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix), and
+> [checked_count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
+> ) do not include the negative sign in their counts because the negative sign is not a digit.
 
 ```rust
 assert_eq!(5, 12345_i32.wrapping_neg().count_digits());
