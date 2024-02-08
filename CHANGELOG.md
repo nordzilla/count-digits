@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1 (2024-02-07)
+
+**Minor Changes**
+
+* Updates the documentation to more closely match the changes in v0.3.0
+
 ## v0.3.0 (2024-02-04)
 
 **Major Changes**
