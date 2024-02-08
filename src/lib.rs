@@ -40,6 +40,7 @@
 //!     fn count_digits(self) -> usize;
 //!
 //!     /// Returns the count of digits in an integer for a given radix.
+//!     /// Panics if the provided radix is invalid.
 //!     fn count_digits_radix(self, radix: Self::Radix) -> usize;
 //!
 //!     /// Returns the count of digits in an integer for a given radix.
@@ -65,6 +66,10 @@
 //!
 //! assert_eq!(05_usize, 61453.count_digits());
 //! assert_eq!(05_usize, 61453.count_digits_radix(10_u32));
+//!
+//! assert!(1.checked_count_digits_radix(0_u32).is_none());
+//! assert!(1.checked_count_digits_radix(1_u32).is_none());
+//! assert!(1.checked_count_digits_radix(2_u32).is_some());
 //! ```
 //!
 //! The named functions for which the radix is a power of two (
@@ -81,8 +86,8 @@
 //! assert_eq!(0b1011_u128.count_bits(), u128::BITS - 0b1011_u128.leading_zeros());
 //! ```
 //!
-//! The base-10 [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
-//! function returns [usize](https://doc.rust-lang.org/core/primitive.usize.html) for compatibility with Rust's formatting macros.
+//! The base-10 function [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
+//! returns [usize](https://doc.rust-lang.org/core/primitive.usize.html) for compatibility with Rust's formatting macros.
 //!
 //! ```rust
 //! # use count_digits::CountDigits;
@@ -99,7 +104,9 @@
 //!
 //! In the case of formatting binary, octal, or hex numbers, the
 //! [count_digits_radix(2 | 8 | 16)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
-//! function can be used to retrieve the desired count directly as a [usize](https://doc.rust-lang.org/core/primitive.usize.html).
+//! and [checked_count_digits_radix(2 | 8 | 16)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
+//! functions can be used to retrieve the desired count directly as a [usize](https://doc.rust-lang.org/core/primitive.usize.html), or
+//! the value can simply be cast using the [as](https://doc.rust-lang.org/std/keyword.as.html) keyword.
 //!
 //! ```rust
 //! # use count_digits::CountDigits;
@@ -117,15 +124,17 @@
 //! ---
 //!
 //! <div class="warning">
-//! The base-10 functions
+//! Functions calls that count digits in base 10 (
 //! <a href="trait.CountDigits.html#tymethod.count_digits" title="method count_digits::CountDigits::count_digits">
 //!    count_digits()
-//! </a>
-//! and
+//! </a>,
 //! <a href="trait.CountDigits.html#tymethod.count_digits_radix" title="method count_digits::CountDigits::count_digits_radix">
 //!    count_digits_radix(10)
+//! </a>, and
+//! <a href="trait.CountDigits.html#tymethod.checked_count_digits_radix" title="method count_digits::CountDigits::checked_count_digits_radix">
+//!    checked_count_digits_radix(10)
 //! </a>
-//! do not include the negative sign in their counts.
+//! ) do not include the negative sign in their counts because the negative sign is not a digit.
 //! </div>
 //!
 //! ```rust
@@ -541,7 +550,7 @@ pub trait CountDigits: Copy + Sized {
     /// Returns the count of decimal digits in an integer.
     ///
     /// <div class="warning">
-    /// Does not count the negative sign when counting negative, signed integers.
+    /// Does not count the negative sign when counting negative, signed integers because the negative sign is not a digit.
     /// </div>
     ///
     /// # Examples
@@ -653,8 +662,12 @@ pub trait CountDigits: Copy + Sized {
 
     /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
     ///
+    /// [Panics](panic) if the provided radix is 0 or 1.
+    ///
+    /// See [checked_count_digits_radix()](CountDigits::checked_count_digits_radix) for a non-panicking version of this function.
+    ///
     /// <div class="warning">
-    /// For radix 10, does not count the negative sign when counting negative, signed integers.
+    /// For radix 10, does not count the negative sign when counting negative, signed integers because the negative sign is not a digit.
     ///
     /// For all other radix values, counts digits according to the
     /// <a href="https://en.wikipedia.org/wiki/Two%27s_complement">twos-complement</a> representation.
@@ -665,11 +678,14 @@ pub trait CountDigits: Copy + Sized {
     /// ```rust
     /// use count_digits::CountDigits;
     ///
-    /// for n in 0..1_000_000 {
+    /// for n in 0..100 {
+    ///   assert!(std::panic::catch_unwind(|| n.count_digits_radix(0_u32)).is_err());
+    ///   assert!(std::panic::catch_unwind(|| n.count_digits_radix(1_u32)).is_err());
+    ///
     ///   assert_eq!(n.count_digits_radix(02_u32) as u32, n.count_bits());
     ///   assert_eq!(n.count_digits_radix(08_u32) as u32, n.count_octal_digits());
-    ///   assert_eq!(n.count_digits_radix(10_u32), n.count_digits());
     ///   assert_eq!(n.count_digits_radix(16_u32) as u32, n.count_hex_digits());
+    ///   assert_eq!(n.count_digits_radix(10_u32), n.count_digits());
     /// }
     /// ```
     fn count_digits_radix(self, radix: Self::Radix) -> usize;
@@ -681,7 +697,7 @@ pub trait CountDigits: Copy + Sized {
     /// See [count_digits_radix()](CountDigits::count_digits_radix) for a panicking version of this function.
     ///
     /// <div class="warning">
-    /// For radix 10, does not count the negative sign when counting negative, signed integers.
+    /// For radix 10, does not count the negative sign when counting negative, signed integers because the negative sign is not a digit.
     ///
     /// For all other radix values, counts digits according to the
     /// <a href="https://en.wikipedia.org/wiki/Two%27s_complement">twos-complement</a> representation.
@@ -754,6 +770,10 @@ macro_rules! impl_count_digits {
 
             #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// [Panics](panic) if the provided radix is 0 or 1.
+            ///
+            /// See [checked_count_digits_radix()](CountDigits::checked_count_digits_radix) for a non-panicking version of this function.
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
                     0 | 1 => panic!("base of integer logarithm must be at least 2"),
@@ -826,6 +846,10 @@ macro_rules! impl_count_digits {
 
             #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// [Panics](panic) if the provided radix is 0 or 1.
+            ///
+            /// See [checked_count_digits_radix()](CountDigits::checked_count_digits_radix) for a non-panicking version of this function.
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
                     0 | 1 => panic!("base of integer logarithm must be at least 2"),
@@ -890,6 +914,10 @@ macro_rules! impl_count_digits {
 
             #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// [Panics](panic) if the provided radix is 0 or 1.
+            ///
+            /// See [checked_count_digits_radix()](CountDigits::checked_count_digits_radix) for a non-panicking version of this function.
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
                     0 | 1 => panic!("base of integer logarithm must be at least 2"),
@@ -944,6 +972,10 @@ macro_rules! impl_count_digits {
 
             #[inline(always)]
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// [Panics](panic) if the provided radix is 0 or 1.
+            ///
+            /// See [checked_count_digits_radix()](CountDigits::checked_count_digits_radix) for a non-panicking version of this function.
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
                     0 | 1 => panic!("base of integer logarithm must be at least 2"),
@@ -974,22 +1006,32 @@ macro_rules! impl_count_digits {
 impl<T: CountDigits> CountDigits for &T {
     type Radix = <T as CountDigits>::Radix;
 
+    #[inline(always)]
+    /// Calls [count_bits()][CountDigits::count_bits] on the inner value.
     fn count_bits(self) -> u32 {
         (*self).count_bits()
     }
 
+    #[inline(always)]
+    /// Calls [count_octal_digits()][CountDigits::count_octal_digits] on the inner value.
     fn count_octal_digits(self) -> u32 {
         (*self).count_octal_digits()
     }
 
+    #[inline(always)]
+    /// Calls [count_digits()][CountDigits::count_digits] on the inner value.
     fn count_digits(self) -> usize {
         (*self).count_digits()
     }
 
+    #[inline(always)]
+    /// Calls [count_hex_digits()][CountDigits::count_hex_digits] on the inner value.
     fn count_hex_digits(self) -> u32 {
         (*self).count_hex_digits()
     }
 
+    #[inline(always)]
+    /// Calls [count_digits_radix()][CountDigits::count_digits_radix] on the inner value.
     fn count_digits_radix(self, radix: Self::Radix) -> usize {
         (*self).count_digits_radix(radix)
     }
