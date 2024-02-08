@@ -721,6 +721,7 @@ macro_rules! impl_count_digits {
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
+                    0 | 1 => panic!("base of integer logarithm must be at least 2"),
                     02 => self.count_bits() as usize,
                     08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
@@ -779,6 +780,7 @@ macro_rules! impl_count_digits {
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
+                    0 | 1 => panic!("base of integer logarithm must be at least 2"),
                     02 => self.count_bits() as usize,
                     08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
@@ -829,6 +831,7 @@ macro_rules! impl_count_digits {
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
+                    0 | 1 => panic!("base of integer logarithm must be at least 2"),
                     02 => self.count_bits() as usize,
                     08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
@@ -869,6 +872,7 @@ macro_rules! impl_count_digits {
             /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
             fn count_digits_radix(self, radix: Self::Radix) -> usize {
                 match radix {
+                    0 | 1 => panic!("base of integer logarithm must be at least 2"),
                     02 => self.count_bits() as usize,
                     08 => self.count_octal_digits() as usize,
                     10 => self.count_digits(),
@@ -1427,6 +1431,28 @@ mod count_digits {
         };
     }
 
+    macro_rules! invalid_radix {
+        ($type:ty, $non_zero_type:ty) => {
+            invalid_radix!(0, $type, $non_zero_type);
+            invalid_radix!(1, $type, $non_zero_type);
+        };
+        ($radix:expr, $type:ty, $non_zero_type:ty) => {
+            paste! {
+                #[test]
+                #[should_panic(expected = "base of integer logarithm must be at least 2")]
+                fn [<$type _invalid_radix_ $radix>]() {
+                    (1 as $type).count_digits_radix($radix);
+                }
+                #[test]
+                #[allow(non_snake_case)]
+                #[should_panic(expected = "base of integer logarithm must be at least 2")]
+                fn [<$non_zero_type _invalid_radix_ $radix>]() {
+                    $non_zero_type::new(1).unwrap().count_digits_radix($radix);
+                }
+            }
+        };
+    }
+
     macro_rules! boundaries_for_radix {
         ($type:ty, $non_zero_type:ty) => {
             boundaries_for_radix!(02, $type, $non_zero_type);
@@ -1497,6 +1523,18 @@ mod count_digits {
     add_test!(boundaries_for_radix, u64, NonZeroU64);
     add_test!(boundaries_for_radix, u128, NonZeroU128);
     add_test!(boundaries_for_radix, usize, NonZeroUsize);
+
+    add_test!(invalid_radix, i8, NonZeroI8);
+    add_test!(invalid_radix, i16, NonZeroI16);
+    add_test!(invalid_radix, i32, NonZeroI32);
+    add_test!(invalid_radix, i64, NonZeroI64);
+    add_test!(invalid_radix, isize, NonZeroIsize);
+
+    add_test!(invalid_radix, u8, NonZeroU8);
+    add_test!(invalid_radix, u16, NonZeroU16);
+    add_test!(invalid_radix, u32, NonZeroU32);
+    add_test!(invalid_radix, u64, NonZeroU64);
+    add_test!(invalid_radix, usize, NonZeroUsize);
 
     add_test!(iteration, signed, i8, NonZeroI8);
     add_test!(iteration, signed, i16, NonZeroI16);
