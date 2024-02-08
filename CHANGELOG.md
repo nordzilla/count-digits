@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.4.0 (2024-02-08)
+
+**Major Changes**
+
+* Fixes an issue where primitive integer implementations were not properly panicking
+for passing radix 0 and 1 to the `CountDigits::count_digits_radix()` function.
+
+**Minor Changes**
+
+* Update documentation clarifying the Radix type.
+
 ## v0.3.1 (2024-02-07)
 
 **Minor Changes**
