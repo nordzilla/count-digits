@@ -201,8 +201,10 @@ pub trait CountDigits: Copy + Sized {
     /// The type of integer that should be passed in to the
     /// [count_digits_radix()](CountDigits::count_digits_radix) function.
     ///
-    /// This is equal to [Self](CountDigits) for primitive types,
-    /// and is equal to the corresponding primitive type for non-zero types.
+    /// This type is always the corresponding unsigned primitive type for an
+    /// integer of a given size.
+    ///
+    /// For example, [u8] is the [Radix](CountDigits::Radix) type for [i8], [u8], [NonZeroI8], and [NonZeroU8].
     type Radix;
 
     /// Returns the count of bits in an integer.
