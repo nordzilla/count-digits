@@ -41,6 +41,10 @@
 //!
 //!     /// Returns the count of digits in an integer for a given radix.
 //!     fn count_digits_radix(self, radix: Self::Radix) -> usize;
+//!
+//!     /// Returns the count of digits in an integer for a given radix.
+//!     /// Returns None if the given radix is invalid.
+//!     fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize>;
 //! }
 //! ```
 //!
@@ -669,6 +673,35 @@ pub trait CountDigits: Copy + Sized {
     /// }
     /// ```
     fn count_digits_radix(self, radix: Self::Radix) -> usize;
+
+    /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+    ///
+    /// Returns [None] if the provided radix is 0 or 1.
+    ///
+    /// See [count_digits_radix()](CountDigits::count_digits_radix) for a panicking version of this function.
+    ///
+    /// <div class="warning">
+    /// For radix 10, does not count the negative sign when counting negative, signed integers.
+    ///
+    /// For all other radix values, counts digits according to the
+    /// <a href="https://en.wikipedia.org/wiki/Two%27s_complement">twos-complement</a> representation.
+    /// </div>
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use count_digits::CountDigits;
+    ///
+    /// for n in 0..100 {
+    ///   assert_eq!(n.checked_count_digits_radix(00_u32), None);
+    ///   assert_eq!(n.checked_count_digits_radix(01_u32), None);
+    ///   assert_eq!(n.checked_count_digits_radix(02_u32).unwrap() as u32, n.count_bits());
+    ///   assert_eq!(n.checked_count_digits_radix(08_u32).unwrap() as u32, n.count_octal_digits());
+    ///   assert_eq!(n.checked_count_digits_radix(16_u32).unwrap() as u32, n.count_hex_digits());
+    ///   assert_eq!(n.checked_count_digits_radix(10_u32).unwrap(), n.count_digits());
+    /// }
+    /// ```
+    fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize>;
 }
 
 macro_rules! impl_count_digits {
@@ -737,6 +770,19 @@ macro_rules! impl_count_digits {
                     }
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// Returns [None] if the provided radix is 0 or 1.
+            ///
+            /// See [count_digits_radix()](CountDigits::count_digits_radix) for a panicking version of this function.
+            fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize> {
+                match radix {
+                    0 | 1 => None,
+                    radix => Some(self.count_digits_radix(radix)),
+                }
+            }
         }
 
         impl CountDigits for $non_zero_type {
@@ -796,6 +842,19 @@ macro_rules! impl_count_digits {
                     }
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// Returns [None] if the provided radix is 0 or 1.
+            ///
+            /// See [count_digits_radix()](CountDigits::count_digits_radix) for a panicking version of this function.
+            fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize> {
+                match radix {
+                    0 | 1 => None,
+                    radix => Some(self.count_digits_radix(radix)),
+                }
+            }
         }
     };
     (
@@ -841,6 +900,19 @@ macro_rules! impl_count_digits {
                     __ => 1 + self.checked_ilog(radix).unwrap_or_default() as usize,
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// Returns [None] if the provided radix is 0 or 1.
+            ///
+            /// See [count_digits_radix()](CountDigits::count_digits_radix) for a panicking version of this function.
+            fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize> {
+                match radix {
+                    0 | 1 => None,
+                    radix => Some(self.count_digits_radix(radix)),
+                }
+            }
         }
 
         impl CountDigits for $non_zero_type {
@@ -882,6 +954,19 @@ macro_rules! impl_count_digits {
                     _ => 1 + self.get().ilog(radix) as usize,
                 }
             }
+
+            #[inline(always)]
+            /// Returns the count of digits in an integer as interpreted with the given [radix](https://en.wikipedia.org/wiki/Radix).
+            ///
+            /// Returns [None] if the provided radix is 0 or 1.
+            ///
+            /// See [count_digits_radix()](CountDigits::count_digits_radix) for a panicking version of this function.
+            fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize> {
+                match radix {
+                    0 | 1 => None,
+                    radix => Some(self.count_digits_radix(radix)),
+                }
+            }
         }
     };
 }
@@ -907,6 +992,12 @@ impl<T: CountDigits> CountDigits for &T {
 
     fn count_digits_radix(self, radix: Self::Radix) -> usize {
         (*self).count_digits_radix(radix)
+    }
+
+    #[inline(always)]
+    /// Calls [checked_count_digits_radix()][CountDigits::checked_count_digits_radix] on the inner value.
+    fn checked_count_digits_radix(self, radix: Self::Radix) -> Option<usize> {
+        (*self).checked_count_digits_radix(radix)
     }
 }
 
@@ -1160,20 +1251,40 @@ mod count_digits {
         };
         ($n:expr, count_digits_radix_ordering) => {
             assert!([
-                $n.count_digits_radix(2),
-                $n.count_digits_radix(3),
-                $n.count_digits_radix(4),
-                $n.count_digits_radix(5),
-                $n.count_digits_radix(6),
-                $n.count_digits_radix(7),
-                $n.count_digits_radix(8),
-                $n.count_digits_radix(9),
+                $n.count_digits_radix(02),
+                $n.count_digits_radix(03),
+                $n.count_digits_radix(04),
+                $n.count_digits_radix(05),
+                $n.count_digits_radix(06),
+                $n.count_digits_radix(07),
+                $n.count_digits_radix(08),
+                $n.count_digits_radix(09),
                 $n.count_digits_radix(11),
                 $n.count_digits_radix(12),
                 $n.count_digits_radix(13),
                 $n.count_digits_radix(14),
                 $n.count_digits_radix(15),
                 $n.count_digits_radix(16),
+            ]
+            .windows(2)
+            .all(|window| window[0] >= window[1]));
+        };
+        ($n:expr, checked_count_digits_radix_ordering) => {
+            assert!([
+                $n.checked_count_digits_radix(02).unwrap(),
+                $n.checked_count_digits_radix(03).unwrap(),
+                $n.checked_count_digits_radix(04).unwrap(),
+                $n.checked_count_digits_radix(05).unwrap(),
+                $n.checked_count_digits_radix(06).unwrap(),
+                $n.checked_count_digits_radix(07).unwrap(),
+                $n.checked_count_digits_radix(08).unwrap(),
+                $n.checked_count_digits_radix(09).unwrap(),
+                $n.checked_count_digits_radix(11).unwrap(),
+                $n.checked_count_digits_radix(12).unwrap(),
+                $n.checked_count_digits_radix(13).unwrap(),
+                $n.checked_count_digits_radix(14).unwrap(),
+                $n.checked_count_digits_radix(15).unwrap(),
+                $n.checked_count_digits_radix(16).unwrap(),
             ]
             .windows(2)
             .all(|window| window[0] >= window[1]));
@@ -1338,6 +1449,12 @@ mod count_digits {
             iteration!($signage, $type, $non_zero_type, count_digits);
             iteration!($signage, $type, $non_zero_type, count_hex_digits);
             iteration!($signage, $type, $non_zero_type, count_digits_radix_ordering);
+            iteration!(
+                $signage,
+                $type,
+                $non_zero_type,
+                checked_count_digits_radix_ordering
+            );
         };
         (signed, $type:ty, $non_zero_type:ty, $function:ident) => {
             paste! {
@@ -1387,7 +1504,15 @@ mod count_digits {
     }
 
     macro_rules! pass_by_reference {
-        (count_digits_radix, $type:ty, $non_zero_type:ty) => {
+        ($type:ty, $non_zero_type:ty) => {
+            pass_by_reference!($type, $non_zero_type, count_bits);
+            pass_by_reference!($type, $non_zero_type, count_octal_digits);
+            pass_by_reference!($type, $non_zero_type, count_hex_digits);
+            pass_by_reference!($type, $non_zero_type, count_digits);
+            pass_by_reference!($type, $non_zero_type, count_digits_radix);
+            pass_by_reference!($type, $non_zero_type, checked_count_digits_radix);
+        };
+        ($type:ty, $non_zero_type:ty, count_digits_radix) => {
             paste! {
                 #[test]
                 fn [<$type _pass_by_reference_count_digits_radix>]() {
@@ -1409,7 +1534,29 @@ mod count_digits {
                 }
             }
         };
-        ($function:ident, $type:ty, $non_zero_type:ty) => {
+        ($type:ty, $non_zero_type:ty, checked_count_digits_radix) => {
+            paste! {
+                #[test]
+                fn [<$type _pass_by_reference_checked_count_digits_radix>]() {
+                    for radix in 2..20 {
+                        for n in radix_boundaries!($type, radix).flatten() {
+                            assert_eq!(CountDigits::checked_count_digits_radix(n, radix), CountDigits::checked_count_digits_radix(&n, radix));
+                        }
+                    }
+                }
+                #[test]
+                #[allow(non_snake_case)]
+                fn [<$non_zero_type _pass_by_reference_checked_count_digits_radix>]() {
+                    for radix in 2..20 {
+                        for n in radix_boundaries!($type, radix).flatten() {
+                            let n = $non_zero_type::new(n).unwrap();
+                            assert_eq!(CountDigits::checked_count_digits_radix(n, radix), CountDigits::checked_count_digits_radix(&n, radix));
+                        }
+                    }
+                }
+            }
+        };
+        ($type:ty, $non_zero_type:ty, $function:ident) => {
             paste! {
                 #[test]
                 fn [<$type _pass_by_reference_ $function>]() {
@@ -1446,10 +1593,21 @@ mod count_digits {
                     (1 as $type).count_digits_radix($radix);
                 }
                 #[test]
+                fn [<$type _invalid_radix_ $radix _checked>]() {
+                    assert!((1 as $type).checked_count_digits_radix($radix).is_none());
+                }
+
+
+                #[test]
                 #[allow(non_snake_case)]
                 #[should_panic(expected = "base of integer logarithm must be at least 2")]
                 fn [<$non_zero_type _invalid_radix_ $radix>]() {
                     $non_zero_type::new(1).unwrap().count_digits_radix($radix);
+                }
+                #[test]
+                #[allow(non_snake_case)]
+                fn [<$non_zero_type _invalid_radix_ $radix _checked>]() {
+                    assert!($non_zero_type::new(1).unwrap().checked_count_digits_radix($radix).is_none());
                 }
             }
         };
@@ -1490,6 +1648,17 @@ mod count_digits {
                     )
                 }
                 #[test]
+                fn [<$type _boundaries_for_radix_ $radix _checked>]() {
+                    assert!(
+                        radix_boundaries!($type, $radix)
+                            .map(|[n, m]| (n.checked_count_digits_radix($radix), m.checked_count_digits_radix($radix)))
+                            .zip(increasing_pairs())
+                            .all(|((lhs_actual, rhs_actual), (lhs_expected, rhs_expected))| {
+                                lhs_expected == lhs_actual.unwrap() && rhs_expected == rhs_actual.unwrap()
+                            })
+                    )
+                }
+                #[test]
                 #[allow(non_snake_case)]
                 fn [<$non_zero_type _boundaries_for_radix_ $radix>]() {
                     assert!(
@@ -1499,6 +1668,19 @@ mod count_digits {
                             .zip(increasing_pairs())
                             .all(|((lhs_actual, rhs_actual), (lhs_expected, rhs_expected))| {
                                 lhs_expected == lhs_actual && rhs_expected == rhs_actual
+                            })
+                    )
+                }
+                #[test]
+                #[allow(non_snake_case)]
+                fn [<$non_zero_type _boundaries_for_radix_ $radix _checked>]() {
+                    assert!(
+                        radix_boundaries!($type, $radix)
+                            .map(|[n, m]| (<$non_zero_type>::new(n).unwrap(), <$non_zero_type>::new(m).unwrap()))
+                            .map(|(n, m)| (n.checked_count_digits_radix($radix), m.checked_count_digits_radix($radix)))
+                            .zip(increasing_pairs())
+                            .all(|((lhs_actual, rhs_actual), (lhs_expected, rhs_expected))| {
+                                lhs_expected == lhs_actual.unwrap() && rhs_expected == rhs_actual.unwrap()
                             })
                     )
                 }
@@ -1566,68 +1748,16 @@ mod count_digits {
     add_test!(min_and_max, u128, NonZeroU128);
     add_test!(min_and_max, usize, NonZeroUsize);
 
-    add_test!(pass_by_reference, count_bits, i8, NonZeroI8);
-    add_test!(pass_by_reference, count_bits, i16, NonZeroI16);
-    add_test!(pass_by_reference, count_bits, i32, NonZeroI32);
-    add_test!(pass_by_reference, count_bits, i64, NonZeroI64);
-    add_test!(pass_by_reference, count_bits, i128, NonZeroI128);
-    add_test!(pass_by_reference, count_bits, isize, NonZeroIsize);
-    add_test!(pass_by_reference, count_bits, u8, NonZeroU8);
-    add_test!(pass_by_reference, count_bits, u16, NonZeroU16);
-    add_test!(pass_by_reference, count_bits, u32, NonZeroU32);
-    add_test!(pass_by_reference, count_bits, u64, NonZeroU64);
-    add_test!(pass_by_reference, count_bits, u128, NonZeroU128);
-    add_test!(pass_by_reference, count_bits, usize, NonZeroUsize);
-
-    add_test!(pass_by_reference, count_octal_digits, i8, NonZeroI8);
-    add_test!(pass_by_reference, count_octal_digits, i16, NonZeroI16);
-    add_test!(pass_by_reference, count_octal_digits, i32, NonZeroI32);
-    add_test!(pass_by_reference, count_octal_digits, i64, NonZeroI64);
-    add_test!(pass_by_reference, count_octal_digits, i128, NonZeroI128);
-    add_test!(pass_by_reference, count_octal_digits, isize, NonZeroIsize);
-    add_test!(pass_by_reference, count_octal_digits, u8, NonZeroU8);
-    add_test!(pass_by_reference, count_octal_digits, u16, NonZeroU16);
-    add_test!(pass_by_reference, count_octal_digits, u32, NonZeroU32);
-    add_test!(pass_by_reference, count_octal_digits, u64, NonZeroU64);
-    add_test!(pass_by_reference, count_octal_digits, u128, NonZeroU128);
-    add_test!(pass_by_reference, count_octal_digits, usize, NonZeroUsize);
-
-    add_test!(pass_by_reference, count_hex_digits, i8, NonZeroI8);
-    add_test!(pass_by_reference, count_hex_digits, i16, NonZeroI16);
-    add_test!(pass_by_reference, count_hex_digits, i32, NonZeroI32);
-    add_test!(pass_by_reference, count_hex_digits, i64, NonZeroI64);
-    add_test!(pass_by_reference, count_hex_digits, i128, NonZeroI128);
-    add_test!(pass_by_reference, count_hex_digits, isize, NonZeroIsize);
-    add_test!(pass_by_reference, count_hex_digits, u8, NonZeroU8);
-    add_test!(pass_by_reference, count_hex_digits, u16, NonZeroU16);
-    add_test!(pass_by_reference, count_hex_digits, u32, NonZeroU32);
-    add_test!(pass_by_reference, count_hex_digits, u64, NonZeroU64);
-    add_test!(pass_by_reference, count_hex_digits, u128, NonZeroU128);
-    add_test!(pass_by_reference, count_hex_digits, usize, NonZeroUsize);
-
-    add_test!(pass_by_reference, count_digits, i8, NonZeroI8);
-    add_test!(pass_by_reference, count_digits, i16, NonZeroI16);
-    add_test!(pass_by_reference, count_digits, i32, NonZeroI32);
-    add_test!(pass_by_reference, count_digits, i64, NonZeroI64);
-    add_test!(pass_by_reference, count_digits, i128, NonZeroI128);
-    add_test!(pass_by_reference, count_digits, isize, NonZeroIsize);
-    add_test!(pass_by_reference, count_digits, u8, NonZeroU8);
-    add_test!(pass_by_reference, count_digits, u16, NonZeroU16);
-    add_test!(pass_by_reference, count_digits, u32, NonZeroU32);
-    add_test!(pass_by_reference, count_digits, u64, NonZeroU64);
-    add_test!(pass_by_reference, count_digits, u128, NonZeroU128);
-    add_test!(pass_by_reference, count_digits, usize, NonZeroUsize);
-
-    add_test!(pass_by_reference, count_digits_radix, i8, NonZeroI8);
-    add_test!(pass_by_reference, count_digits_radix, i16, NonZeroI16);
-    add_test!(pass_by_reference, count_digits_radix, i32, NonZeroI32);
-    add_test!(pass_by_reference, count_digits_radix, i64, NonZeroI64);
-    add_test!(pass_by_reference, count_digits_radix, i128, NonZeroI128);
-    add_test!(pass_by_reference, count_digits_radix, isize, NonZeroIsize);
-    add_test!(pass_by_reference, count_digits_radix, u8, NonZeroU8);
-    add_test!(pass_by_reference, count_digits_radix, u16, NonZeroU16);
-    add_test!(pass_by_reference, count_digits_radix, u32, NonZeroU32);
-    add_test!(pass_by_reference, count_digits_radix, u64, NonZeroU64);
-    add_test!(pass_by_reference, count_digits_radix, u128, NonZeroU128);
-    add_test!(pass_by_reference, count_digits_radix, usize, NonZeroUsize);
+    add_test!(pass_by_reference, i8, NonZeroI8);
+    add_test!(pass_by_reference, i16, NonZeroI16);
+    add_test!(pass_by_reference, i32, NonZeroI32);
+    add_test!(pass_by_reference, i64, NonZeroI64);
+    add_test!(pass_by_reference, i128, NonZeroI128);
+    add_test!(pass_by_reference, isize, NonZeroIsize);
+    add_test!(pass_by_reference, u8, NonZeroU8);
+    add_test!(pass_by_reference, u16, NonZeroU16);
+    add_test!(pass_by_reference, u32, NonZeroU32);
+    add_test!(pass_by_reference, u64, NonZeroU64);
+    add_test!(pass_by_reference, u128, NonZeroU128);
+    add_test!(pass_by_reference, usize, NonZeroUsize);
 }
