@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0 (2024-02-09)
+
+**Major Changes**
+
+* Adds a new function `CountDigits::checked_count_digits_radix()` which is a non-panicking
+version of `CountDigits::count_digits_radix()`.
+
 ## v0.4.0 (2024-02-08)
 
 **Major Changes**
