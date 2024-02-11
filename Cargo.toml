@@ -2,10 +2,10 @@
 name = "count-digits"
 version = "0.5.0"
 authors = ["Erik Nordin <nordzillacode@gmail.com>"]
-description = "A no-std trait to count the digits of integer types in various number bases."
+description = "A no-std trait to determine the lengths of integers in various number bases."
 homepage = "https://github.com/nordzilla/count-digits"
 repository = "https://github.com/nordzilla/count-digits"
-keywords = ["count", "digits", "integer", "trait", "length"]
+keywords = ["count", "digits", "integer", "length", "trait"]
 categories = [ "algorithms", "mathematics", "no-std" ]
 license = "MIT"
 edition = "2021"

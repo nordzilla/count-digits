@@ -25,6 +25,7 @@ Compatible with all primitive integer types and all non-zero integer types.
 
 ```rust
 pub trait CountDigits: Copy + Sized {
+    /// The type of integer that should be used as the radix.
     type Radix;
 
     /// Returns the count of bits in an integer.
