@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.1 (2024-02-11)
+
+**Minor Changes**
+
+* Update documentation to make the Examples section more clear.
+
 ## v0.5.0 (2024-02-09)
 
 **Major Changes**
