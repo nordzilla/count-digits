@@ -18,14 +18,16 @@
 
 <br>
 
-A [no_std](https://docs.rust-embedded.org/book/intro/no-std.html) trait to count
-the digits of integer types in various number bases.
+[CountDigits](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html)
+is a [no-std](https://docs.rust-embedded.org/book/intro/no-std.html) trait with functions
+to determine the lengths of integers in various number bases.
 
-Compatible with all primitive integer types and all non-zero integer types.
+It is [implemented](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#foreign-impls)
+for all primitive integer types and all non-zero integer types.
 
 ```rust
 pub trait CountDigits: Copy + Sized {
-    /// The type of integer that should be used as the radix.
+    /// The type of integer that should be used for radix arguments.
     type Radix;
 
     /// Returns the count of bits in an integer.
@@ -55,29 +57,32 @@ pub trait CountDigits: Copy + Sized {
 ```rust
 use count_digits::CountDigits;
 
-assert_eq!(16___u32, 0b1111000000001101.count_bits());
-assert_eq!(16_usize, 0b1111000000001101.count_digits_radix(2_u32));
+// Base 2
+assert_eq!(16, 0b1111000000001101.count_bits());
+assert_eq!(16, 0b1111000000001101.count_digits_radix(2_u32));
 
-assert_eq!(06___u32, 0o170015.count_octal_digits());
-assert_eq!(06_usize, 0o170015.count_digits_radix(8_u32));
+// Base 8
+assert_eq!(06, 0o170015.count_octal_digits());
+assert_eq!(06, 0o170015.count_digits_radix(8_u32));
 
-assert_eq!(04___u32, 0xF00D.count_hex_digits());
-assert_eq!(04_usize, 0xF00D.count_digits_radix(16_u32));
+// Base 10
+assert_eq!(05, 61453.count_digits());
+assert_eq!(05, 61453.count_digits_radix(10_u32));
 
-assert_eq!(05_usize, 61453.count_digits());
-assert_eq!(05_usize, 61453.count_digits_radix(10_u32));
-
-assert!(1.checked_count_digits_radix(0_u32).is_none());
-assert!(1.checked_count_digits_radix(1_u32).is_none());
-assert!(1.checked_count_digits_radix(2_u32).is_some());
+// Base 16
+assert_eq!(04, 0xF00D.count_hex_digits());
+assert_eq!(04, 0xF00D.count_digits_radix(16_u32));
 ```
 
-The named functions for which the radix is a power of two (
-[count_bits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_bits),
-[count_octal_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_octal_digits), and
-[count_hex_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_hex_digits)
-) return a [u32](https://doc.rust-lang.org/core/primitive.u32.html) for compatibility with Rust's bit-shifting functions
-and constants, which all use [u32](https://doc.rust-lang.org/core/primitive.u32.html) for arguments and return types.
+#### Functions That Return u32
+
+Named functions for which the radix is a power of two return
+[u32](https://doc.rust-lang.org/core/primitive.u32.html) for
+compatibility with Rust's bitwise functions and constants.
+
+* [count_bits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_bits)
+* [count_octal_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_octal_digits)
+* [count_hex_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_hex_digits)
 
 ```rust
 assert_eq!(0b1011___u8.count_bits(),   u8::BITS - 0b1011___u8.leading_zeros());
@@ -85,71 +90,93 @@ assert_eq!(0b1011__i32.count_bits(),  i32::BITS - 0b1011__i32.leading_zeros());
 assert_eq!(0b1011_u128.count_bits(), u128::BITS - 0b1011_u128.leading_zeros());
 ```
 
-The base-10 function [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
-returns [usize](https://doc.rust-lang.org/core/primitive.usize.html) for compatibility with Rust's formatting macros.
+#### Functions That Return usize
+
+Functions that are not inherently meaningful in a bitwise context return [usize](https://doc.rust-lang.org/core/primitive.usize.html)
+for compatibility with Rust's formatting functions and macros.
+
+* [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits)
+* [count_digits_radix()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
+* [checked_count_digits_radix()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
 
 ```rust
-let max_digits = [1, 2, 15, 105]
+let numbers = [2, 3, 13, 103, 1337];
+let max_digits = numbers
     .iter()
     .map(CountDigits::count_digits)
     .max()
     .unwrap();
 
-for n in [1, 2, 15, 105] {
-    assert_eq!(3, format!("{n:0>pad$}", pad = max_digits).len());
+for n in numbers {
+    assert_eq!(4, format!("{n:>max_digits$}").chars().count());
 }
 ```
 
-In the case of formatting binary, octal, or hex numbers, the
+When formatting binary, octal, or hexadecimal numbers, the
 [count_digits_radix(2 | 8 | 16)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
 and [checked_count_digits_radix(2 | 8 | 16)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
-functions can be used to retrieve the desired count directly as a [usize](https://doc.rust-lang.org/core/primitive.usize.html), or
-the value can simply be cast using the [as](https://doc.rust-lang.org/std/keyword.as.html) keyword.
+functions can be used in place of [count_bits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_bits),
+[count_octal_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_octal_digits), and
+[count_hex_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_hex_digits)
+to retrieve the desired count directly as a [usize](https://doc.rust-lang.org/core/primitive.usize.html).
 
 ```rust
-let max_bits = [0b1, 0b10, 0b101, 0b1011]
+let numbers = [0b1, 0b10, 0b101, 0b1011];
+let max_bits = numbers
     .iter()
     .map(|n| n.count_digits_radix(2u32))
     .max()
     .unwrap();
 
-for n in [0b1, 0b10, 0b101, 0b1011] {
-    assert_eq!(4, format!("{n:0>pad$}", pad = max_bits).len());
+for n in numbers {
+    assert_eq!(4, format!("{n:>max_bits$}").chars().count());
 }
 ```
 
----
+#### Invalid Radix Values
 
-> [!NOTE]
-> Function calls that count digits in base 10 (
-> [count_digits()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits),
-> [count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix), and
-> [checked_count_digits_radix(10)](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
-> ) do not include the negative sign in their counts because the negative sign is not a digit.
+Values passed to [count_digits_radix()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
+and [checked_count_digits_radix()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
+must be greater than or equal to 2.
+
+* [count_digits_radix()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.count_digits_radix)
+will [panic](https://doc.rust-lang.org/stable/core/macro.panic.html) if given an invalid radix.
 
 ```rust
-assert_eq!(5, 12345_i32.wrapping_neg().count_digits());
-assert_eq!(5, 12345_i32.wrapping_neg().count_digits_radix(10));
-````
+for n in 0..100 {
+    assert!(std::panic::catch_unwind(|| n.count_digits_radix(0_u32)).is_err());
+    assert!(std::panic::catch_unwind(|| n.count_digits_radix(1_u32)).is_err());
+}
+```
 
----
+* [checked_count_digits_radix()](https://docs.rs/count-digits/latest/count_digits/trait.CountDigits.html#tymethod.checked_count_digits_radix)
+will return [None](https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None) if given an invalid radix.
 
-> [!NOTE]
-> Negative numbers counted in base-10 are counted differently than
-> negative numbers counted in other number bases.
+```rust
+for n in 0..100 {
+    assert!(n.checked_count_digits_radix(0_u32).is_none());
+    assert!(n.checked_count_digits_radix(1_u32).is_none());
+}
+```
 
-Since negative numbers represented in base-10 are displayed with a negative sign,
+#### Negative Numbers
+
+Since negative numbers represented in base 10 are displayed with a negative sign,
 the base-10 digit count of a positive number will be equal to the base-10 digit count
-of the number's negated value, assuming no wrapping occurred.
+of the number's negated value, assuming no wrapping occurs.
 
 ```rust
 assert_eq!(
     867_5309_i32.count_digits(),
     867_5309_i32.wrapping_neg().count_digits(),
 );
-````
+```
 
-However, the digit counts of negative numbers represented in other bases reflect the
+> [!NOTE]
+> The negative sign itself is not included in the count because
+> the negative sign is not a digit.
+
+The digit counts of negative numbers represented in other bases reflect the
 [twos-complement](https://en.wikipedia.org/wiki/Two%27s_complement) representation,
 and the digit count of a positive number will _not_ be the same as the count
 of its negated value.
@@ -167,19 +194,25 @@ for radix in 2..=16 {
         ),
     }
 }
-````
+```
 
-This behavior is consistent with Rust's display format.
+This is consistent with Rust's display format.
 ```rust
-assert_eq!(1, format!("{:b}",  1_i8).chars().count());
-assert_eq!(1, format!("{:o}",  1_i8).chars().count());
-assert_eq!(1, format!("{  }",  1_i8).chars().count());
-assert_eq!(1, format!("{:x}",  1_i8).chars().count());
+// Base 2
+assert_eq!(01, format!("{:b}",  1_i32).chars().count());
+assert_eq!(32, format!("{:b}", -1_i32).chars().count());
 
-assert_eq!(8, format!("{:b}", -1_i8).chars().count());
-assert_eq!(3, format!("{:o}", -1_i8).chars().count());
-assert_eq!(1, format!("{  }", -1_i8).strip_prefix('-').unwrap().chars().count());
-assert_eq!(2, format!("{:x}", -1_i8).chars().count());
+// Base 8
+assert_eq!(01, format!("{:o}",  1_i32).chars().count());
+assert_eq!(11, format!("{:o}", -1_i32).chars().count());
+
+// Base 10
+assert_eq!(01, format!("{  }",  1_i32).chars().count());
+assert_eq!(01, format!("{  }", -1_i32).strip_prefix('-').unwrap().chars().count());
+
+// Base 16
+assert_eq!(01, format!("{:x}",  1_i32).chars().count());
+assert_eq!(08, format!("{:x}", -1_i32).chars().count());
 ```
 
 ### Benchmarks
